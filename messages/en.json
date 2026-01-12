@@ -1,0 +1,17 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "blog": "Blog",
+    "docs": "Documentation",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout"
+  }
+}

@@ -1,5 +1,10 @@
 import createMDX from 'fumadocs-mdx/config';
+import createNextIntlPlugin from 'next-intl/plugin';
 
+const withNextIntl = createNextIntlPlugin('./i18n.ts', {
+  // Enable TypeScript type generation for translation keys
+  typeGeneration: true
+});
 const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
@@ -13,8 +18,8 @@ const config = {
         port: ''
       },
       {
-        protocol: 'http', 
-        hostname: '127.0.0.1', 
+        protocol: 'http',
+        hostname: '127.0.0.1',
         port: '64321'
       },
       {
@@ -26,4 +31,4 @@ const config = {
   }
 };
 
-export default withMDX(config);
+export default withNextIntl(withMDX(config));

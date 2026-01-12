@@ -1,0 +1,17 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功"
+  },
+  "nav": {
+    "home": "首页",
+    "dashboard": "仪表板",
+    "blog": "博客",
+    "docs": "文档",
+    "login": "登录",
+    "signup": "注册",
+    "logout": "退出"
+  }
+}
