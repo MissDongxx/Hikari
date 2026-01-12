@@ -47,13 +47,6 @@ export const metadata: Metadata = {
     'Server Components',
     'Radix UI'
   ],
-  authors: [
-    {
-      name: 'antoineross',
-      url: 'https://antoineross.com'
-    }
-  ],
-  creator: 'antoineross',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -66,8 +59,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [`${siteConfig.url}/og.jpg`],
-    creator: '@antoineross'
+    images: [`${siteConfig.url}/og.jpg`]
   },
   icons: {
     icon: '/favicon.ico',

@@ -8,8 +8,20 @@ import { convertBlobUrlToFile } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
+// Helper function to remove cache-busting query parameters from URL
+function getCleanAvatarUrl(url: string | null): string {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.delete('t');
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
+
 export function ImageUpload({ user }: { user: any }) {
-  const [avatarUrl, setAvatarUrl] = useState(`${user.avatar_url}?t=${Date.now()}`);
+  const [avatarUrl, setAvatarUrl] = useState(getCleanAvatarUrl(user.avatar_url));
   const [imageUrl, setImageUrl] = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -73,14 +85,12 @@ export function ImageUpload({ user }: { user: any }) {
     <div className="flex flex-col gap-4 justify-center items-left py-6">
       <span className="text-sm font-medium">Avatar Image</span>
       <div className="ml-1 w-24 h-24 rounded-lg overflow-hidden border-2 border-primary p-0.5">
-      <Image 
-        src={imageUrl || avatarUrl || '/default-avatar.png'} 
-        width={96} 
-        height={96} 
-        alt="User Avatar" 
+      <Image
+        src={imageUrl || avatarUrl || '/default-avatar.png'}
+        width={96}
+        height={96}
+        alt="User Avatar"
         className="object-cover rounded-lg"
-        unoptimized
-        key={avatarUrl}
       />
       </div>
       <input

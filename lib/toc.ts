@@ -1,17 +1,29 @@
-// @ts-nocheck
 // TODO: Fix this when we turn strict mode on.
-
 import { toc } from 'mdast-util-toc';
 import { remark } from 'remark';
 import { visit } from 'unist-util-visit';
+import type { Parent, Node } from 'unist';
+import type { Root } from 'mdast';
 
 const textTypes = ['text', 'emphasis', 'strong', 'inlineCode'];
 
-function flattenNode(node) {
-  const p = [];
-  visit(node, (node) => {
-    if (!textTypes.includes(node.type)) return;
-    p.push(node.value);
+interface FlatNode extends Node {
+  value?: string;
+  type: string;
+}
+
+interface LinkNode extends Node {
+  type: 'link';
+  url: string;
+}
+
+function flattenNode(node: Node): string {
+  const p: string[] = [];
+  visit(node, (childNode: FlatNode) => {
+    if (!textTypes.includes(childNode.type)) return;
+    if (childNode.value) {
+      p.push(childNode.value);
+    }
   });
   return p.join(``);
 }
@@ -26,15 +38,24 @@ interface Items {
   items?: Array<Item>;
 }
 
-function getItems(node, current): Items {
+interface ListNode extends Node {
+  type: 'list';
+  children: Node[];
+}
+
+interface ParagraphNode extends Node {
+  type: 'paragraph';
+}
+
+function getItems(node: Node | undefined, current: Item): Item {
   if (!node) {
-    return {};
+    return {} as Item;
   }
 
   if (node.type === 'paragraph') {
-    visit(node, (item) => {
+    visit(node, (item: FlatNode | LinkNode) => {
       if (item.type === 'link') {
-        current.url = item.url;
+        current.url = (item as LinkNode).url;
         current.title = flattenNode(node);
       }
 
@@ -47,25 +68,27 @@ function getItems(node, current): Items {
   }
 
   if (node.type === 'list') {
-    current.items = node.children.map((i) => getItems(i, {}));
+    const listNode = node as ListNode;
+    current.items = listNode.children.map((i) => getItems(i, {} as Item));
 
     return current;
   } else if (node.type === 'listItem') {
-    const heading = getItems(node.children[0], {});
+    const parent = node as Parent;
+    const heading = getItems(parent.children[0], {} as Item);
 
-    if (node.children.length > 1) {
-      getItems(node.children[1], heading);
+    if (parent.children.length > 1) {
+      getItems(parent.children[1], heading);
     }
 
     return heading;
   }
 
-  return {};
+  return {} as Item;
 }
 
-const getToc = () => (node, file) => {
+const getToc = () => (node: Root, file: { data: unknown }) => {
   const table = toc(node);
-  file.data = getItems(table.map, {});
+  file.data = getItems(table.map, {} as Item);
 };
 
 export type TableOfContents = Items;
@@ -75,5 +98,5 @@ export async function getTableOfContents(
 ): Promise<TableOfContents> {
   const result = await remark().use(getToc).process(content);
 
-  return result.data;
+  return result.data as TableOfContents;
 }

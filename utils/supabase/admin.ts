@@ -3,16 +3,19 @@ import { stripe } from '@/utils/stripe/config';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import type { Database, Tables, TablesInsert } from '@/types/db';
+import { env } from '@/env';
 
 type Product = Tables<'products'>;
 type Price = Tables<'prices'>;
 
-// Change to control trial period length
-const TRIAL_PERIOD_DAYS = 0;
+// Trial period length in days (can be configured via environment variable)
+const TRIAL_PERIOD_DAYS = Number(process.env.TRIAL_PERIOD_DAYS) || 0;
 
+// Use service_role key for admin operations (bypasses RLS, has full access)
+// DO NOT expose this key to the client
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 const upsertProductRecord = async (product: Stripe.Product) => {
@@ -35,9 +38,7 @@ const upsertProductRecord = async (product: Stripe.Product) => {
 };
 
 const upsertPriceRecord = async (
-  price: Stripe.Price,
-  retryCount = 0,
-  maxRetries = 3
+  price: Stripe.Price
 ) => {
   const priceData: Price = {
     id: price.id,
@@ -53,26 +54,44 @@ const upsertPriceRecord = async (
     metadata: null
   };
 
-  const { error: upsertError } = await supabase
-    .from('prices')
-    .upsert([priceData]);
+  // Retry logic for transient errors (network issues, timeouts)
+  const maxRetries = 3;
+  const baseDelay = 1000; // 1 second
 
-  if (upsertError?.message.includes('foreign key constraint')) {
-    if (retryCount < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      await upsertPriceRecord(price, retryCount + 1, maxRetries);
-    } else {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const { error: upsertError } = await supabase
+      .from('prices')
+      .upsert([priceData]);
+
+    // Don't retry on foreign key constraint errors (permanent failure)
+    if (upsertError?.message.includes('foreign key constraint')) {
       console.error(
-        `Price insert/update failed after ${maxRetries} retries: ${upsertError.message}`
+        `Price insert/update failed due to foreign key constraint: ${upsertError.message}`
       );
       throw new Error(
-        `Price insert/update failed after ${maxRetries} retries: ${upsertError.message}`
+        `Price insert/update failed: Product ${priceData.product_id} does not exist`
       );
     }
-  } else if (upsertError) {
-    console.error(`Price insert/update failed: ${upsertError.message}`);
-    throw new Error(`Price insert/update failed: ${upsertError.message}`);
-  } else {
+
+    // If no error or last attempt, break
+    if (!upsertError || attempt === maxRetries) {
+      if (upsertError) {
+        console.error(
+          `Price insert/update failed after ${maxRetries} retries: ${upsertError.message}`
+        );
+        throw new Error(
+          `Price insert/update failed after ${maxRetries} retries: ${upsertError.message}`
+        );
+      }
+      break;
+    }
+
+    // Exponential backoff for transient errors
+    const delay = baseDelay * Math.pow(2, attempt);
+    console.warn(
+      `Price upsert attempt ${attempt + 1} failed, retrying in ${delay}ms...`
+    );
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 };
 
@@ -213,12 +232,27 @@ const copyBillingDetailsToCustomer = async (
   uuid: string,
   payment_method: Stripe.PaymentMethod
 ) => {
-  //Todo: check this assertion
-  const customer = payment_method.customer as string;
+  // Check if customer exists and is a string (customer ID)
+  if (!payment_method.customer || typeof payment_method.customer !== 'string') {
+    console.error('Invalid customer attached to payment method');
+    return;
+  }
+
+  const customer = payment_method.customer;
   const { name, phone, address } = payment_method.billing_details;
   if (!name || !phone || !address) return;
-  //@ts-ignore
-  await stripe.customers.update(customer, { name, phone, address });
+
+  // Convert null values to undefined for Stripe API compatibility
+  const addressParam = {
+    line1: address.line1 ?? undefined,
+    line2: address.line2 ?? undefined,
+    city: address.city ?? undefined,
+    state: address.state ?? undefined,
+    postal_code: address.postal_code ?? undefined,
+    country: address.country ?? undefined
+  };
+
+  await stripe.customers.update(customer, { name, phone, address: addressParam });
   const { error: updateError } = await supabase
     .from('users')
     .update({
@@ -254,38 +288,75 @@ const manageSubscriptionStatusChange = async (
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ['default_payment_method']
   });
+
+  // Extract subscription data from the response
+  // Note: Response<Subscription> has different type than Subscription
+  const sub = subscription as unknown as Stripe.Subscription;
+
+  // WARNING: Current database schema only supports one price per subscription.
+  // If subscription has multiple items, only the first one will be stored.
+  if (sub.items.data.length > 1) {
+    console.warn(
+      `Subscription ${subscriptionId} has ${sub.items.data.length} items, ` +
+      `but current schema only supports one. Storing only the first item.`
+    );
+  }
+  const subscriptionItem = sub.items.data[0];
+
+  // Idempotency check: Use subscription's current_period_end as a version timestamp
+  // This prevents race conditions when multiple webhooks arrive simultaneously
+  const subscriptionTimestamp = sub.current_period_end;
+
+  // Check if we already have a newer version of this subscription
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('current_period_end')
+    .eq('id', subscriptionId)
+    .maybeSingle();
+
+  if (existingSub) {
+    const existingTimestamp = new Date(existingSub.current_period_end).getTime();
+    // If the existing subscription is newer or equal, skip this update
+    if (existingTimestamp >= subscriptionTimestamp * 1000) {
+      console.info(
+        `Skipping subscription ${subscriptionId} update: ` +
+        `existing version (${new Date(existingTimestamp).toISOString()}) is ` +
+        `newer or equal to incoming (${new Date(subscriptionTimestamp * 1000).toISOString()})`
+      );
+      return;
+    }
+  }
+
   // Upsert the latest status of the subscription object.
   const subscriptionData: TablesInsert<'subscriptions'> = {
-    id: subscription.id,
+    id: sub.id,
     user_id: uuid,
-    metadata: subscription.metadata,
-    status: subscription.status,
-    price_id: subscription.items.data[0].price.id,
-    //TODO check quantity on subscription
-    // @ts-ignore
-    quantity: subscription.quantity,
-    cancel_at_period_end: subscription.cancel_at_period_end,
-    cancel_at: subscription.cancel_at
-      ? toDateTime(subscription.cancel_at).toISOString()
+    metadata: sub.metadata,
+    status: sub.status,
+    price_id: subscriptionItem.price.id,
+    quantity: subscriptionItem.quantity ?? null,
+    cancel_at_period_end: sub.cancel_at_period_end,
+    cancel_at: sub.cancel_at
+      ? toDateTime(sub.cancel_at).toISOString()
       : null,
-    canceled_at: subscription.canceled_at
-      ? toDateTime(subscription.canceled_at).toISOString()
+    canceled_at: sub.canceled_at
+      ? toDateTime(sub.canceled_at).toISOString()
       : null,
     current_period_start: toDateTime(
-      subscription.current_period_start
+      sub.current_period_start
     ).toISOString(),
     current_period_end: toDateTime(
-      subscription.current_period_end
+      sub.current_period_end
     ).toISOString(),
-    created: toDateTime(subscription.created).toISOString(),
-    ended_at: subscription.ended_at
-      ? toDateTime(subscription.ended_at).toISOString()
+    created: toDateTime(sub.created).toISOString(),
+    ended_at: sub.ended_at
+      ? toDateTime(sub.ended_at).toISOString()
       : null,
-    trial_start: subscription.trial_start
-      ? toDateTime(subscription.trial_start).toISOString()
+    trial_start: sub.trial_start
+      ? toDateTime(sub.trial_start).toISOString()
       : null,
-    trial_end: subscription.trial_end
-      ? toDateTime(subscription.trial_end).toISOString()
+    trial_end: sub.trial_end
+      ? toDateTime(sub.trial_end).toISOString()
       : null
   };
 
@@ -302,11 +373,14 @@ const manageSubscriptionStatusChange = async (
   // For a new subscription copy the billing details to the customer object.
   // NOTE: This is a costly operation and should happen at the very end.
   if (createAction && subscription.default_payment_method && uuid) {
-    //@ts-ignore
-    await copyBillingDetailsToCustomer(
-      uuid,
-      subscription.default_payment_method as Stripe.PaymentMethod
-    );
+    // default_payment_method can be a string (ID) or expanded PaymentMethod object
+    const paymentMethod = subscription.default_payment_method;
+    if (typeof paymentMethod !== 'string') {
+      await copyBillingDetailsToCustomer(
+        uuid,
+        paymentMethod
+      );
+    }
   }
 };
 

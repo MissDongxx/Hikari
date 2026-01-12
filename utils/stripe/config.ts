@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
+import { env } from '@/env';
 
 export const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY_LIVE ?? process.env.STRIPE_SECRET_KEY ?? '',
+  env.STRIPE_SECRET_KEY,
   {
     // https://github.com/stripe/stripe-node#configuration
     // https://stripe.com/docs/api/versioning
