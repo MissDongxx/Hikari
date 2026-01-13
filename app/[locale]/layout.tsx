@@ -51,7 +51,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const localeToOgLocale: Record<string, string> = {
     en: 'en_US',
-    zh: 'zh_CN'
+    zh: 'zh_CN',
+    ja: 'ja_JP'
   };
 
   return {
@@ -92,6 +93,7 @@ export async function generateMetadata({
       languages: {
         'en': '/en',
         'zh': '/zh',
+        'ja': '/ja',
         'x-default': '/en'
       }
     }
@@ -126,8 +128,8 @@ export default async function LocaleLayout({
   // side is the easiest way to get started
   const messages = await getMessages();
 
-  // Normalize locale for HTML lang attribute (zh -> zh-CN, en -> en)
-  const htmlLang = locale === 'zh' ? 'zh-CN' : 'en';
+  // Normalize locale for HTML lang attribute (zh -> zh-CN, ja -> ja, en -> en)
+  const htmlLang = locale === 'zh' ? 'zh-CN' : locale === 'ja' ? 'ja' : 'en';
 
   return (
     <html lang={htmlLang} suppressHydrationWarning>

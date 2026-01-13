@@ -19,19 +19,43 @@ export async function middleware(request: NextRequest) {
   // Run next-intl middleware first to handle locale routing/redirects
   const intlResponse = intlMiddleware(request);
 
-  // Apply Supabase session management and custom headers
-  const sessionResponse = await updateSession(request);
+  // Check if intl middleware returned a redirect
+  const redirectLocation = intlResponse.headers.get('location');
 
-  // Copy important headers from intl response
+  if (redirectLocation) {
+    // If intl middleware wants to redirect, we need to apply session management
+    // and then return a redirect response
+    await updateSession(request); // Apply session side-effects
+
+    // Create a new redirect response with the location from intl middleware
+    const response = NextResponse.redirect(new URL(redirectLocation, request.url), {
+      status: intlResponse.status,
+      statusText: intlResponse.statusText
+    });
+
+    // Copy custom headers
+    response.headers.set('x-current-path', request.nextUrl.pathname);
+
+    // Preserve x- headers from intl response
+    intlResponse.headers.forEach((value, key) => {
+      if (key.toLowerCase().startsWith('x-')) {
+        response.headers.set(key, value);
+      }
+    });
+
+    return response;
+  }
+
+  // No redirect, apply normal session management
+  const sessionResponse = await updateSession(request);
+  sessionResponse.headers.set('x-current-path', request.nextUrl.pathname);
+
+  // Preserve x- headers from intl response
   intlResponse.headers.forEach((value, key) => {
-    // Preserve redirect and other critical headers from intl middleware
-    if (key.toLowerCase() === 'location' || key.toLowerCase().startsWith('x-')) {
+    if (key.toLowerCase().startsWith('x-')) {
       sessionResponse.headers.set(key, value);
     }
   });
-
-  // Set custom header
-  sessionResponse.headers.set('x-current-path', request.nextUrl.pathname);
 
   return sessionResponse;
 }

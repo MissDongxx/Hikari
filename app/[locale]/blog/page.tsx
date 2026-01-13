@@ -1,7 +1,12 @@
 import Link from 'next/link';
-import { blog } from '@/utils/source';
+import { getBlogSource } from '@/lib/content-source';
 
-export default function Page(): React.ReactElement {
+export default async function Page({
+  params: { locale }
+}: {
+  params: { locale: string };
+}): Promise<React.ReactElement> {
+  const blog = getBlogSource(locale);
   const posts = [...blog.getPages()].sort(
     (a, b) =>
       new Date(b.data.date ?? b.file.name).getTime() -

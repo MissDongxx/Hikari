@@ -1,7 +1,7 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
-export default function HomePage() {
-  const t = useTranslations('common');
+export default async function HomePage() {
+  const t = await getTranslations('common');
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">

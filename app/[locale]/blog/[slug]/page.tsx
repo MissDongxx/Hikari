@@ -2,22 +2,24 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
-import { blog } from '@/utils/source';
+import { getBlogSource } from '@/lib/content-source';
 import { createMetadata } from '@/utils/metadata';
 import { buttonVariants } from '@/components/ui/button';
 import { Control } from './page.client';
 
 interface Param {
+  locale: string;
   slug: string;
 }
 
 export const dynamicParams = false;
 
-export default function Page({
+export default async function Page({
   params
 }: {
   params: Param;
-}): React.ReactElement {
+}): Promise<React.ReactElement> {
+  const blog = getBlogSource(params.locale);
   const page = blog.getPage([params.slug]);
 
   if (!page) notFound();
@@ -41,7 +43,7 @@ export default function Page({
         </h1>
         <p className="mb-4 text-white/80">{page.data.description}</p>
         <Link
-          href="/blog"
+          href={`/${params.locale}/blog`}
           className={buttonVariants({ size: 'sm', variant: 'secondary' })}
         >
           Back
@@ -71,6 +73,7 @@ export default function Page({
 }
 
 export function generateMetadata({ params }: { params: Param }): Metadata {
+  const blog = getBlogSource(params.locale);
   const page = blog.getPage([params.slug]);
 
   if (!page) notFound();
@@ -82,8 +85,9 @@ export function generateMetadata({ params }: { params: Param }): Metadata {
   });
 }
 
-export async function generateStaticParams(): Promise<Param[]> {
-  return blog.getPages().map<Param>((page) => ({
+export async function generateStaticParams({ locale }: { locale: string }): Promise<Omit<Param, 'locale'>[]> {
+  const blog = getBlogSource(locale);
+  return blog.getPages().map((page) => ({
     slug: page.slugs[0]
   }));
 }
