@@ -23,16 +23,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9
+    },
+    {
+      url: `${baseUrl}/zh`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/ja`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9
     }
   ];
 
-  // TODO: Add documentation pages once fumadocs integration is fixed
-  // const docsPages = getPages().map((page) => ({
-  //   url: `${baseUrl}/docs/${page.slugs.join('/')}`,
-  //   lastModified: new Date(),
-  //   changeFrequency: 'weekly' as const,
-  //   priority: 0.6
-  // }));
-
-  return staticPages; // [...staticPages, ...docsPages];
+  return staticPages;
 }

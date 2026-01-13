@@ -5,7 +5,8 @@ import { locales, type Locale, defaultLocale } from './i18n';
 import { LOCALE_COOKIE } from '@/lib/locale';
 
 // Create next-intl middleware
-// localePrefix: 'always' means all URLs have locale prefix: /en/docs, /ja/docs, /zh/docs
+// localePrefix: 'as-needed' means default locale (en) doesn't show prefix: /docs
+// other locales show prefix: /zh/docs, /ja/docs
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale: 'en',
@@ -47,8 +48,7 @@ export async function middleware(request: NextRequest) {
         });
       }
     } else {
-      // If no locale prefix is found in the redirect location, it implies the default locale
-      // when using localePrefix: 'as-needed' (e.g. /en -> /)
+      // If no locale prefix is found in the redirect location, use default locale
       response.cookies.set(LOCALE_COOKIE, defaultLocale, {
         maxAge: 60 * 60 * 24 * 365,
         path: '/',
