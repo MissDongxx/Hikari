@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 import createMiddleware from 'next-intl/middleware';
-import { locales, type Locale } from './i18n';
+import { locales, type Locale, defaultLocale } from './i18n';
 import { LOCALE_COOKIE } from '@/lib/locale';
 
 // Create next-intl middleware
@@ -46,6 +46,14 @@ export async function middleware(request: NextRequest) {
           sameSite: 'lax'
         });
       }
+    } else {
+      // If no locale prefix is found in the redirect location, it implies the default locale
+      // when using localePrefix: 'as-needed' (e.g. /en -> /)
+      response.cookies.set(LOCALE_COOKIE, defaultLocale, {
+        maxAge: 60 * 60 * 24 * 365,
+        path: '/',
+        sameSite: 'lax'
+      });
     }
 
     await updateSession(request);

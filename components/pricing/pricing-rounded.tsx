@@ -96,7 +96,7 @@ export default function PricingRounded({
 
   if (!displayProducts.length) {
     return (
-      <section className="container mx-auto" id="pricing">
+      <section className="container mx-auto scroll-mt-28" id="pricing">
         <div className="max-w-6xl px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8">
           <div className="sm:flex sm:flex-col sm:align-center"></div>
           <p className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
@@ -116,7 +116,7 @@ export default function PricingRounded({
     );
   } else {
     return (
-      <section className="container mx-auto" id="pricing">
+      <section className="container mx-auto scroll-mt-28" id="pricing">
         <div className="flex flex-col items-center justify-center w-full min-h-screen py-10 ">
           <h1 className="text-3xl font-bold text-center">
             Flat pricing, no management fees.

@@ -3,7 +3,7 @@ import { locales, type Locale } from '@/i18n';
 /**
  * Cookie name for storing user's locale preference
  */
-export const LOCALE_COOKIE = 'user-locale';
+export const LOCALE_COOKIE = 'NEXT_LOCALE';
 
 export function isLocale(locale: string): locale is Locale {
   return locales.includes(locale as Locale);

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import { Link, usePathname } from '@/lib/navigation';
 import { MainNavItem } from 'types';
 import { cn } from '@/lib/utils';
 import { MobileNav } from '@/components/mobile-nav';
@@ -23,9 +23,10 @@ export default function CircularNavigation({
   user
 }: CircularNavProps) {
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
+  const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center justify-between w-full md:w-fit p-2 md:p-1 gap-4 md:gap-20 md:bg-zinc-50 md:dark:bg-zinc-900 md:rounded-full md:px-8 md:border-2 md:border-muted/30 md:dark:border-muted/80 md:shadow-md mx-auto mt-4 backdrop-blur-sm md:backdrop-blur-none">
+    <nav className="sticky top-2 z-50 flex flex-wrap items-center justify-between w-full md:w-fit p-2 md:p-1 gap-4 md:gap-20 md:bg-zinc-50 md:dark:bg-zinc-900 md:rounded-full md:px-8 md:border-2 md:border-muted/30 md:dark:border-muted/80 md:shadow-md mx-auto mt-4 backdrop-blur-sm md:backdrop-blur-none">
       <div className="flex items-center space-x-2">
         <div className="bg-slate-50 dark:bg-slate-900 p-1 rounded-full">
           <SunIcon className="size-8 transition-transform duration-300 ease-in-out hover:scale-110" />
@@ -34,18 +35,29 @@ export default function CircularNavigation({
       </div>
       {items?.length ? (
         <div className="hidden md:flex space-x-6">
-          {items?.map((item, index) => (
-            <Link
-              key={index}
-              href={item.disabled ? '#' : item.href}
-              className={cn(
-                'text-primary transition-colors hover:text-foreground/80',
-                item.disabled && 'cursor-not-allowed opacity-80'
-              )}
-            >
-              {item.title}
-            </Link>
-          ))}
+          {items?.map((item, index) => {
+            // Handle scrolling for hash links on the landing page
+            // If we are on the landing page ('/'), use direct hash link ('#features')
+            // otherwise use full path ('/#features') which next-intl Link handles correctly
+            const isLandingPage = pathname === '/';
+            const isHashLink = item.href.startsWith('/#');
+            const href = isLandingPage && isHashLink
+              ? item.href.replace(/^\//, '')
+              : item.href;
+
+            return (
+              <Link
+                key={index}
+                href={item.disabled ? '#' : href}
+                className={cn(
+                  'text-primary transition-colors hover:text-foreground/80',
+                  item.disabled && 'cursor-not-allowed opacity-80'
+                )}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
         </div>
       ) : null}
       <div className="flex items-center space-x-2">
