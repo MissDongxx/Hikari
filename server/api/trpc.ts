@@ -25,7 +25,7 @@ import { createClient } from "@/utils/supabase/server";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getUser(supabase);
   return {
     ...opts,

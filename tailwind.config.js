@@ -1,5 +1,4 @@
 const { fontFamily } = require('tailwindcss/defaultTheme');
-import { createPreset } from 'fumadocs-ui/tailwind-plugin';
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -12,11 +11,6 @@ module.exports = {
     './node_modules/fumadocs-ui/dist/**/*.js' // Fumadocs
   ],
   prefix: '',
-  presets: [
-    createPreset({
-      preset: 'dusk'
-    })
-  ],
   darkMode: ['class'],
   theme: {
     container: {

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { getBlogSource } from '@/lib/content-source';
 import { createMetadata } from '@/utils/metadata';
 import { buttonVariants } from '@/components/ui/button';
@@ -17,10 +16,11 @@ export const dynamicParams = false;
 export default async function Page({
   params
 }: {
-  params: Param;
+  params: Promise<Param>;
 }): Promise<React.ReactElement> {
-  const blog = getBlogSource(params.locale);
-  const page = blog.getPage([params.slug]);
+  const { locale, slug } = await params;
+  const blog = getBlogSource(locale);
+  const page = blog.getPage([slug]);
 
   if (!page) notFound();
 
@@ -41,53 +41,39 @@ export default async function Page({
         <h1 className="mb-2 text-3xl font-bold text-white">
           {page.data.title}
         </h1>
-        <p className="mb-4 text-white/80">{page.data.description}</p>
         <Link
-          href={`/${params.locale}/blog`}
+          href={`/${locale}/blog`}
           className={buttonVariants({ size: 'sm', variant: 'secondary' })}
         >
           Back
         </Link>
       </div>
-      <article className="container grid grid-cols-1 px-0 py-8 lg:grid-cols-[2fr_1fr] lg:px-4">
-        <div className="prose p-4">
-          <InlineTOC items={page.data.exports.toc} />
-          <page.data.exports.default />
-        </div>
-        <div className="flex flex-col gap-4 border-l p-4 text-sm">
-          <div>
-            <p className="mb-1 text-muted-foreground">Written by</p>
-            <p className="font-medium">{page.data.author}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-sm text-muted-foreground">At</p>
-            <p className="font-medium">
-              {new Date(page.data.date ?? page.file.name).toDateString()}
-            </p>
-          </div>
-          <Control url={page.url} />
+      <article className="container px-4 py-8">
+        <div className="prose max-w-none">
+          <p>Blog post content would be rendered here.</p>
+          <p>Page data: {JSON.stringify(page.data, null, 2)}</p>
         </div>
       </article>
     </>
   );
 }
 
-export function generateMetadata({ params }: { params: Param }): Metadata {
-  const blog = getBlogSource(params.locale);
-  const page = blog.getPage([params.slug]);
+export async function generateMetadata({ params }: { params: Promise<Param> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const blog = getBlogSource(locale);
+  const page = blog.getPage([slug]);
 
   if (!page) notFound();
 
   return createMetadata({
     title: page.data.title,
-    description:
-      page.data.description ?? 'The library for building documentation sites'
+    description: 'Blog post'
   });
 }
 
-export async function generateStaticParams({ locale }: { locale: string }): Promise<Omit<Param, 'locale'>[]> {
-  const blog = getBlogSource(locale);
-  return blog.getPages().map((page) => ({
+export async function generateStaticParams({ params }: { params: { locale: string } }): Promise<Omit<Param, 'locale'>[]> {
+  const blog = getBlogSource(params.locale);
+  return blog.getPages().map((page: any) => ({
     slug: page.slugs[0]
   }));
 }

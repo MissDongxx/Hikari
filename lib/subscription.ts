@@ -7,7 +7,7 @@ import type { Database } from '@/types/db';
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch user data with subscription information
   const { data: userData, error: userError } = await supabase

@@ -11,7 +11,19 @@
     "blog": "ブログ",
     "docs": "ドキュメント",
     "login": "ログイン",
-    "signup": "新規登録",
+    "signup": "サインアップ",
     "logout": "ログアウト"
+  },
+  "seo": {
+    "title": "Hikari - モダンWebアプリケーション",
+    "description": "React、Tailwind CSS、最新のWeb技術を使用した強力なNext.jsアプリケーション。高速でレスポンシブな美しいインターフェースを構築。"
+  },
+  "hero": {
+    "badge": "Xで進捗をフォロー",
+    "title": "Supabaseを使用した完全オープンソースのNext.js 14 SaaSテンプレート",
+    "subtitle": "Next.js 14とSupabaseでモダンなWebアプリを構築し、すべてをオープンソースで公開しています。一緒に学びましょう。",
+    "getStarted": "始める",
+    "github": "GitHub",
+    "joinDevelopers": "160人以上の開発者に参加"
   }
 }

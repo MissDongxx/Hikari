@@ -7,7 +7,7 @@ export const postsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ title: z.string().min(1), content: z.string().nullable() }))
     .mutation(async ({ input, ctx }) => {
-      const { data, error } = await createClient()
+      const { data, error } = await (await createClient())
         .from('posts')
         .insert({
           user_id: ctx.user.id,
@@ -29,7 +29,7 @@ export const postsRouter = createTRPCRouter({
   update: protectedProcedure
     .input(z.object({ id: z.number(), title: z.string().min(1), content: z.string().nullable() }))
     .mutation(async ({ input, ctx }) => {
-      const { data, error } = await createClient()
+      const { data, error } = await (await createClient())
         .from('posts')
         .update({ 
           title: input.title, 
@@ -51,7 +51,7 @@ export const postsRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const { error } = await createClient()
+      const { error } = await (await createClient())
         .from('posts')
         .delete()
         .eq('id', input.id)
@@ -66,7 +66,7 @@ export const postsRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .query(async ({ ctx }) => {
-      const { data, error } = await createClient()
+      const { data, error } = await (await createClient())
         .from('posts')
         .select('*')
         .eq('user_id', ctx.user.id)
@@ -83,7 +83,7 @@ export const postsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input, ctx }) => {
-      const { data, error } = await createClient()
+      const { data, error } = await (await createClient())
         .from('posts')
         .select('*')
         .eq('id', input.id)

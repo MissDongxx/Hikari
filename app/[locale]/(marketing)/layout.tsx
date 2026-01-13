@@ -13,7 +13,7 @@ interface MarketingLayoutProps {
 export default async function MarketingLayout({
   children
 }: MarketingLayoutProps) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getUser(supabase);
 
   return (

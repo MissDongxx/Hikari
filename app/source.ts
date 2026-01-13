@@ -1,16 +1,25 @@
-import { map } from '@/.map';
-import { createMDXSource, defaultSchemas } from 'fumadocs-mdx';
+import { docs, meta } from '../.source/server';
 import { loader } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 import { createElement } from 'react';
 import type { InferMetaType, InferPageType } from 'fumadocs-core/source';
-import { z } from 'zod';
 
-export const { getPage, getPages, pageTree } = loader({
+// Patch for fumadocs-mdx v14 vs fumadocs-core v16 mismatch
+// fumadocs-mdx v14 puts path in `info.path`, but fumadocs-core v16 loader expects `path` at root.
+// @ts-ignore
+const patchedDocs = Array.isArray(docs)
+  ? docs.map((d: any) => ({
+    ...d,
+    path: d.path || d.info?.path,
+  }))
+  : docs;
+
+export const source = loader({
+
   baseUrl: '/docs',
-  rootDir: 'docs',
-  source: createMDXSource(map),
+  source: { files: patchedDocs as any },
   icon(icon) {
+
     if (!icon) {
       return;
     }
@@ -33,18 +42,10 @@ export const { getPage, getPages, pageTree } = loader({
   }
 });
 
-export const blog = loader({
-  baseUrl: '/blog',
-  rootDir: 'blog',
-  source: createMDXSource(map, {
-    schema: {
-      frontmatter: defaultSchemas.frontmatter.extend({
-        author: z.string(),
-        date: z.string().date().or(z.date()).optional()
-      })
-    }
-  })
-});
+// Export convenience functions
+export const getPage = source.getPage;
+export const getPages = source.getPages;
+export const pageTree = source.pageTree;
 
-export type Page = InferPageType<typeof blog>;
-export type Meta = InferMetaType<typeof blog>;
+export type Page = InferPageType<typeof source>;
+export type Meta = InferMetaType<typeof source>;

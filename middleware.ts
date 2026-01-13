@@ -1,63 +1,65 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 import createMiddleware from 'next-intl/middleware';
-import { locales } from './i18n';
+import { locales, type Locale } from './i18n';
+import { LOCALE_COOKIE } from '@/lib/locale';
 
-// Create the next-intl middleware
+// Create next-intl middleware
+// localePrefix: 'always' means all URLs have locale prefix: /en/docs, /ja/docs, /zh/docs
 const intlMiddleware = createMiddleware({
-  // A list of all locales that are supported
   locales,
-
-  // Used when no locale matches
   defaultLocale: 'en',
-
-  // Automatically detect locale from Accept-Language header
-  localeDetection: true
+  localePrefix: 'as-needed',
+  localeDetection: true // Enable auto-detection to redirect based on browser language
 });
 
 export async function middleware(request: NextRequest) {
-  // Run next-intl middleware first to handle locale routing/redirects
+  // Skip API routes and static files
+  if (
+    request.nextUrl.pathname.startsWith('/api/') ||
+    request.nextUrl.pathname.startsWith('/_next/') ||
+    request.nextUrl.pathname.includes('.')
+  ) {
+    return updateSession(request);
+  }
+
+  // Run next-intl middleware
   const intlResponse = intlMiddleware(request);
 
-  // Check if intl middleware returned a redirect
+  // Check if intl middleware wants to redirect
   const redirectLocation = intlResponse.headers.get('location');
 
   if (redirectLocation) {
-    // If intl middleware wants to redirect, we need to apply session management
-    // and then return a redirect response
-    await updateSession(request); // Apply session side-effects
-
-    // Create a new redirect response with the location from intl middleware
+    // Extract locale from redirect location and set cookie
+    const localeMatch = redirectLocation.match(/^\/([a-z]{2})(\/|$)/);
     const response = NextResponse.redirect(new URL(redirectLocation, request.url), {
       status: intlResponse.status,
       statusText: intlResponse.statusText
     });
 
-    // Copy custom headers
-    response.headers.set('x-current-path', request.nextUrl.pathname);
-
-    // Preserve x- headers from intl response
-    intlResponse.headers.forEach((value, key) => {
-      if (key.toLowerCase().startsWith('x-')) {
-        response.headers.set(key, value);
+    if (localeMatch) {
+      const detectedLocale = localeMatch[1] as Locale;
+      if (locales.includes(detectedLocale)) {
+        response.cookies.set(LOCALE_COOKIE, detectedLocale, {
+          maxAge: 60 * 60 * 24 * 365,
+          path: '/',
+          sameSite: 'lax'
+        });
       }
-    });
+    }
+
+    await updateSession(request);
+    response.headers.set('x-current-path', request.nextUrl.pathname);
 
     return response;
   }
 
-  // No redirect, apply normal session management
-  const sessionResponse = await updateSession(request);
-  sessionResponse.headers.set('x-current-path', request.nextUrl.pathname);
+  // No redirect - return intl response directly
+  // The intlResponse contains the necessary rewrite headers for localePrefix: 'as-needed'
+  // to properly route unprefixed paths like /docs to [locale]/docs
+  await updateSession(request);
 
-  // Preserve x- headers from intl response
-  intlResponse.headers.forEach((value, key) => {
-    if (key.toLowerCase().startsWith('x-')) {
-      sessionResponse.headers.set(key, value);
-    }
-  });
-
-  return sessionResponse;
+  return intlResponse;
 }
 
 export const config = {

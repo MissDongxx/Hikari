@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next';
-import { blog, getPages } from './source';
 import { getURL } from '@/utils/helpers';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -18,24 +17,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9
     }
   ];
 
-  // Blog posts
-  const blogPosts = blog.getPages().map((post) => ({
-    url: `${baseUrl}/blog/${post.slugs.join('/')}`,
-    lastModified: post.data.date ? new Date(post.data.date) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7
-  }));
+  // TODO: Add documentation pages once fumadocs integration is fixed
+  // const docsPages = getPages().map((page) => ({
+  //   url: `${baseUrl}/docs/${page.slugs.join('/')}`,
+  //   lastModified: new Date(),
+  //   changeFrequency: 'weekly' as const,
+  //   priority: 0.6
+  // }));
 
-  // Documentation pages
-  const docsPages = getPages().map((page) => ({
-    url: `${baseUrl}/docs/${page.slugs.join('/')}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6
-  }));
-
-  return [...staticPages, ...blogPosts, ...docsPages];
+  return staticPages; // [...staticPages, ...docsPages];
 }

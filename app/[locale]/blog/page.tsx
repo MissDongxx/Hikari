@@ -2,15 +2,14 @@ import Link from 'next/link';
 import { getBlogSource } from '@/lib/content-source';
 
 export default async function Page({
-  params: { locale }
+  params
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<React.ReactElement> {
+  const { locale } = await params;
   const blog = getBlogSource(locale);
   const posts = [...blog.getPages()].sort(
-    (a, b) =>
-      new Date(b.data.date ?? b.file.name).getTime() -
-      new Date(a.data.date ?? a.file.name).getTime()
+    (a: any, b: any) => b.file?.name?.localeCompare(a.file?.name) ?? 0
   );
 
   const svg = `<svg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'>
@@ -64,11 +63,11 @@ export default async function Page({
             >
               <p className="font-medium">{post.data.title}</p>
               <p className="text-sm text-muted-foreground">
-                {post.data.description}
+                {(post as any).file?.name || 'Blog Post'}
               </p>
 
               <p className="mt-auto pt-4 text-xs text-muted-foreground">
-                {new Date(post.data.date ?? post.file.name).toDateString()}
+                Blog post
               </p>
             </Link>
           ))}

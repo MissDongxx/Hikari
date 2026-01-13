@@ -9,10 +9,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Inter as FontSans } from 'next/font/google';
 import localFont from 'next/font/local';
 import type { Viewport } from 'next';
-import { RootProvider } from 'fumadocs-ui/provider';
+import { RootProvider } from 'fumadocs-ui/provider/next';
 import { TRPCReactProvider } from '@/trpc/react';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { locales } from '@/i18n';
 
 export const viewport: Viewport = {
@@ -45,10 +45,13 @@ const fontHeading = localFont({
 });
 
 export async function generateMetadata({
-  params: { locale }
+  params
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'seo' });
+
   const localeToOgLocale: Record<string, string> = {
     en: 'en_US',
     zh: 'zh_CN',
@@ -58,10 +61,10 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(getURL()),
     title: {
-      default: siteConfig.name,
-      template: `%s | ${siteConfig.name}`
+      default: t('title'),
+      template: `%s | ${t('title')}`
     },
-    description: siteConfig.description,
+    description: t('description'),
     keywords: [
       'Next.js',
       'React',
@@ -73,14 +76,14 @@ export async function generateMetadata({
       type: 'website',
       locale: localeToOgLocale[locale] || 'en_US',
       url: siteConfig.url,
-      title: siteConfig.name,
-      description: siteConfig.description,
+      title: t('title'),
+      description: t('description'),
       siteName: siteConfig.name
     },
     twitter: {
       card: 'summary_large_image',
-      title: siteConfig.name,
-      description: siteConfig.description,
+      title: t('title'),
+      description: t('description'),
       images: [`${siteConfig.url}/og.jpg`]
     },
     icons: {
@@ -122,10 +125,15 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
-}: PropsWithChildren<{ params: { locale: string } }>) {
-  // Providing all messages to the client
-  // side is the easiest way to get started
+  params
+}: PropsWithChildren<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
+  // Enable static rendering - required for localePrefix: 'as-needed'
+  // This tells next-intl what locale to use for this request
+  setRequestLocale(locale);
+
+  // getMessages() uses the locale from request context set above
   const messages = await getMessages();
 
   // Normalize locale for HTML lang attribute (zh -> zh-CN, ja -> ja, en -> en)

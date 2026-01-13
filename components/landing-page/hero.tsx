@@ -13,9 +13,11 @@ import { useTheme } from 'next-themes';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl';
 
 export default function HeroSection() {
   const { theme } = useTheme();
+  const t = useTranslations('hero');
   const avatarUrls = [
     'https://avatars.githubusercontent.com/u/16860528',
     'https://avatars.githubusercontent.com/u/20110627',
@@ -66,23 +68,22 @@ export default function HeroSection() {
                     `inline animate-gradient bg-gradient-to-r from-[#b76a24] via-[#6a24b7] to-[#b76a24] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
                   )}
                 >
-                  Follow the progress on X
-                </span>                
+                  {t('badge')}
+                </span>
                 <ArrowRightIcon className="ml-2 size-4 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
               </AnimatedGradientText>
             </div>
           </Link>
 
-          <h1 className="font-heading tracking-tight   font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl">
-            A Complete & Open Source Next.js 14 SaaS Template Using Supabase
+          <h1 className="font-heading tracking-tight font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl">
+            {t('title')}
           </h1>
           <div className="max-w-[42rem] font-bold tracking-tight text-primary sm:text-xl sm:leading-8 rounded-full p-2">
-            I&apos;m building a modern web app with Next.js 14 & Supabase and open
-            sourcing everything. Follow along as we figure this out together.
+            {t('subtitle')}
           </div>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/login" className={cn(buttonVariants({ size: 'xl' }), 'rounded-full border-2 border-primary dark:border-white text-bold text-white')}>
-              Get Started
+              {t('getStarted')}
             </Link>
             <Link
               href={siteConfig.links.github}
@@ -90,7 +91,7 @@ export default function HeroSection() {
               rel="noreferrer"
               className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'rounded-full border-2 border-primary dark:border-white text-semibold')}
             >
-              GitHub <GitHubLogoIcon className="ml-2" />
+              {t('github')} <GitHubLogoIcon className="ml-2" />
             </Link>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-2 w-full">
@@ -105,7 +106,7 @@ export default function HeroSection() {
                 ))}
               </div>
               <span className="text-xs font-semibold">
-                Join 160+ developers
+                {t('joinDevelopers')}
               </span>
             </div>
           </div>

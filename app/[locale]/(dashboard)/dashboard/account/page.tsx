@@ -23,7 +23,7 @@ import { ImageUpload } from './image-upload';
 import { redirect } from 'next/navigation';
 
 export default async function AccountPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const [user, userDetails] = await Promise.all([
     getUser(supabase),
     getUserDetails(supabase),

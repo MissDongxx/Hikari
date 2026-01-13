@@ -66,9 +66,4 @@ To contribute:
 4. Push to the forked repository.
 5. Create a pull request.
 
-## ❤️ Support
 
-If you like the project, consider leaving a star. 🌟
-[![Star History Chart](https://api.star-history.com/svg?repos=antoineross/Hikari&type=Date)](https://star-history.com/#antoineross/Hikari&Date)
-
-Made by [Antoine Ross](https://antoineross.com).

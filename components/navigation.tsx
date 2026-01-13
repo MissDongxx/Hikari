@@ -8,6 +8,7 @@ import { MobileNav } from '@/components/mobile-nav';
 import { Icons } from '@/components/icons';
 import { buttonVariants } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { SunIcon } from '@heroicons/react/24/solid'
 
 interface CircularNavProps {
@@ -48,6 +49,9 @@ export default function CircularNavigation({
         </div>
       ) : null}
       <div className="flex items-center space-x-2">
+        <div className="hidden md:block">
+          <LocaleSwitcher />
+        </div>
         <div className="hidden md:block">
           <ModeToggle />
         </div>

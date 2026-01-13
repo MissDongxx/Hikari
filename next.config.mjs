@@ -1,4 +1,4 @@
-import createMDX from 'fumadocs-mdx/config';
+import { createMDX } from 'fumadocs-mdx/next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts', {

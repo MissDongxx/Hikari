@@ -7,7 +7,7 @@ import {
 import PricingRounded from './pricing-rounded';
 
 export default async function PricingPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const [user, products] = await Promise.all([
     getUser(supabase),
     getProducts(supabase),

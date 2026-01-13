@@ -1,4 +1,3 @@
-import { createMDXSource, defaultSchemas } from 'fumadocs-mdx/config';
 import { loader } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 import { createElement } from 'react';
@@ -11,13 +10,13 @@ import path from 'path';
  * Helper function to scan content directory and build map for specific locale
  * Supports structure: content/{type}/{post-name}/{locale}.mdx
  */
-function buildLocaleMap(contentDir: string, locale: string): Record<string, any> {
-  const map: Record<string, any> = {};
+function buildLocaleMap(contentDir: string, locale: string): Array<{ type: 'page' | 'meta'; path: string; data: () => Promise<string> }> {
+  const files: Array<{ type: 'page' | 'meta'; path: string; data: () => Promise<string> }> = [];
   const baseDir = path.join(process.cwd(), 'content', contentDir);
 
   if (!fs.existsSync(baseDir)) {
     console.warn(`Content directory not found: ${baseDir}`);
-    return map;
+    return files;
   }
 
   function scanDir(dir: string, relativePath: string = '') {
@@ -35,37 +34,54 @@ function buildLocaleMap(contentDir: string, locale: string): Record<string, any>
 
         // Priority: locale file > en.mdx > index.mdx
         if (fs.existsSync(localeFile)) {
-          map[path.join(relPath, `${locale}.mdx`).replace(/\\/g, '/')] = localeFile;
+          files.push({
+            type: 'page',
+            path: path.join(relPath).replace(/\\/g, '/'),
+            data: async () => fs.readFileSync(localeFile, 'utf-8')
+          });
         } else if (fs.existsSync(enFile)) {
-          map[path.join(relPath, `en.mdx`).replace(/\\/g, '/')] = enFile;
+          files.push({
+            type: 'page',
+            path: path.join(relPath).replace(/\\/g, '/'),
+            data: async () => fs.readFileSync(enFile, 'utf-8')
+          });
         } else if (fs.existsSync(indexFile)) {
-          map[path.join(relPath, `index.mdx`).replace(/\\/g, '/')] = indexFile;
+          files.push({
+            type: 'page',
+            path: path.join(relPath).replace(/\\/g, '/'),
+            data: async () => fs.readFileSync(indexFile, 'utf-8')
+          });
         }
 
         // Continue scanning for nested content
         scanDir(fullPath, relPath);
       } else if (entry.name.endsWith('.mdx') && !entry.name.match(/^(en|zh|ja)\.mdx$/)) {
         // Direct .mdx files (non-locale specific)
-        map[relPath.replace(/\\/g, '/')] = fullPath;
+        files.push({
+          type: 'page',
+          path: relPath.replace(/\\/g, '/').replace(/\.mdx$/, ''),
+          data: async () => fs.readFileSync(fullPath, 'utf-8')
+        });
       }
     }
   }
 
   scanDir(baseDir);
-  return map;
+  return files;
 }
 
 /**
  * Create docs loader for specific locale
  */
 export function createDocsLoader(locale: string) {
-  const localeMap = buildLocaleMap('docs', locale);
+  const localeFiles = buildLocaleMap('docs', locale);
 
   return loader({
     baseUrl: '/docs',
-    rootDir: 'docs',
-    source: createMDXSource(localeMap),
-    icon(icon: string) {
+    source: {
+      files: localeFiles as any
+    },
+    icon(icon: string | undefined) {
       if (!icon) return;
       if (icon in icons) {
         return createElement(
@@ -86,19 +102,13 @@ export function createDocsLoader(locale: string) {
  * Create blog loader for specific locale
  */
 export function createBlogLoader(locale: string) {
-  const localeMap = buildLocaleMap('blog', locale);
+  const localeFiles = buildLocaleMap('blog', locale);
 
   return loader({
     baseUrl: '/blog',
-    rootDir: 'blog',
-    source: createMDXSource(localeMap, {
-      schema: {
-        frontmatter: defaultSchemas.frontmatter.extend({
-          author: z.string(),
-          date: z.string().date().or(z.date()).optional()
-        })
-      }
-    })
+    source: {
+      files: localeFiles as any
+    }
   });
 }
 

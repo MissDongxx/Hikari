@@ -13,5 +13,17 @@
     "login": "Login",
     "signup": "Sign Up",
     "logout": "Logout"
+  },
+  "seo": {
+    "title": "Hikari - Modern Web Application",
+    "description": "A powerful Next.js application with React, Tailwind CSS, and modern web technologies. Build fast, responsive, and beautiful interfaces."
+  },
+  "hero": {
+    "badge": "Follow the progress on X",
+    "title": "A Complete & Open Source Next.js 14 SaaS Template Using Supabase",
+    "subtitle": "I'm building a modern web app with Next.js 14 & Supabase and open sourcing everything. Follow along as we figure this out together.",
+    "getStarted": "Get Started",
+    "github": "GitHub",
+    "joinDevelopers": "Join 160+ developers"
   }
 }

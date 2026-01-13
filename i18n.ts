@@ -1,17 +1,21 @@
 import { getRequestConfig } from 'next-intl/server';
-import { notFound } from 'next/navigation';
 
 // Can be imported from a shared config
 export const locales = ['en', 'zh', 'ja'] as const;
 export type Locale = (typeof locales)[number];
+export const defaultLocale: Locale = 'en';
 
-export default getRequestConfig(async ({ locale }) => {
-  // Validate that the incoming `locale` parameter is valid
+export default getRequestConfig(async ({ requestLocale }) => {
+  // requestLocale can be undefined when using localePrefix: 'as-needed'
+  // In that case, we fall back to the default locale
+  let locale = await requestLocale;
+
+  // Validate or fallback to default
   if (!locale || !locales.includes(locale as Locale)) {
-    notFound();
+    locale = defaultLocale;
   }
 
-  // Now we know locale is valid, use type assertion
+  // Now we know locale is valid
   const validLocale = locale as Locale;
 
   let messages;
@@ -40,3 +44,4 @@ export default getRequestConfig(async ({ locale }) => {
     messages
   };
 });
+
