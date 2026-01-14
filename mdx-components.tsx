@@ -7,3 +7,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ...components
   };
 }
+
+// Export both function and variable for compatibility
+export const useMDXComponent = useMDXComponents;

@@ -2,9 +2,45 @@ import { loader } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 import { createElement } from 'react';
 import type { InferMetaType, InferPageType } from 'fumadocs-core/source';
-import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
+
+/**
+ * Parse frontmatter from MDX content
+ */
+function parseFrontmatter(content: string): { data: Record<string, any>; content: string } {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  const match = content.match(frontmatterRegex);
+
+  if (!match) {
+    return { data: {}, content: content.trim() };
+  }
+
+  const frontmatterStr = match[1];
+  const bodyContent = match[2];
+
+  // Parse YAML-style frontmatter
+  const data: Record<string, any> = {};
+  const lines = frontmatterStr.split('\n');
+
+  for (const line of lines) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.slice(0, colonIndex).trim();
+      let value = line.slice(colonIndex + 1).trim();
+
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+
+      data[key] = value;
+    }
+  }
+
+  return { data, content: bodyContent.trim() };
+}
 
 /**
  * Helper function to scan content directory and build map for specific locale
@@ -100,6 +136,7 @@ export function createDocsLoader(locale: string) {
 
 /**
  * Create blog loader for specific locale
+ * Note: This is now deprecated in favor of fumadocs-mdx blog collection
  */
 export function createBlogLoader(locale: string) {
   const localeFiles = buildLocaleMap('blog', locale);
@@ -124,6 +161,7 @@ export function getDocsSource(locale: string) {
 
 /**
  * Get blog source for specific locale
+ * Note: Consider using the fumadocs-mdx blog collection from source.config instead
  */
 export function getBlogSource(locale: string) {
   return createBlogLoader(locale);

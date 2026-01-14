@@ -9,4 +9,4 @@ const create = server<typeof Config, import("fumadocs-mdx/runtime/types").Intern
 
 export const docs = await create.docLazy("docs", "content/docs", {}, {});
 
-export const meta = await create.meta("meta", "content/docs", {});
+export const docsMeta = await create.meta("docsMeta", "content/docs", {});

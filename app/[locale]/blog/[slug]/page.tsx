@@ -5,6 +5,7 @@ import { getBlogSource } from '@/lib/content-source';
 import { createMetadata } from '@/utils/metadata';
 import { buttonVariants } from '@/components/ui/button';
 import { Control } from './page.client';
+import { getPostData } from '@/lib/mdx-parser';
 
 interface Param {
   locale: string;
@@ -24,6 +25,15 @@ export default async function Page({
 
   if (!page) notFound();
 
+  // Get post metadata and content
+  const { data: metadata, content: mdxContent } = getPostData(slug, locale, 'blog');
+
+  // Merge metadata with page data
+  const pageData: Record<string, any> = {
+    ...page.data,
+    ...metadata
+  };
+
   return (
     <>
       <div
@@ -39,8 +49,21 @@ export default async function Page({
         }}
       >
         <h1 className="mb-2 text-3xl font-bold text-white">
-          {page.data.title}
+          {pageData.title || 'Untitled'}
         </h1>
+        <div className="flex flex-wrap gap-4 text-sm text-white/80 mb-4">
+          {pageData.author && (
+            <span>By {pageData.author}</span>
+          )}
+          {pageData.date && (
+            <span>• {new Date(pageData.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric'
+            })}</span>
+          )}
+        </div>
         <Link
           href={`/${locale}/blog`}
           className={buttonVariants({ size: 'sm', variant: 'secondary' })}
@@ -49,9 +72,17 @@ export default async function Page({
         </Link>
       </div>
       <article className="container px-4 py-8">
-        <div className="prose max-w-none">
-          <p>Blog post content would be rendered here.</p>
-          <p>Page data: {JSON.stringify(page.data, null, 2)}</p>
+        <div className="prose max-w-none dark:prose-invert">
+          {/* Render MDX content */}
+          <div dangerouslySetInnerHTML={{ __html: mdxContent
+            // Convert markdown to HTML (basic conversion)
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+            .replace(/\n/gim, '<br />')
+          }} />
         </div>
       </article>
     </>
@@ -65,9 +96,12 @@ export async function generateMetadata({ params }: { params: Promise<Param> }): 
 
   if (!page) notFound();
 
+  // Get post metadata
+  const { data: metadata } = getPostData(slug, locale, 'blog');
+
   return createMetadata({
-    title: page.data.title,
-    description: 'Blog post'
+    title: metadata.title || page.data.title || 'Blog Post',
+    description: metadata.description || (page.data as any).description || 'Blog post'
   });
 }
 
