@@ -17,6 +17,7 @@ const patchedDocs = Array.isArray(docs)
 export const source = loader({
 
   baseUrl: '/docs',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   source: { files: patchedDocs as any },
   icon(icon) {
 

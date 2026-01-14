@@ -24,7 +24,7 @@ export function LocaleSwitcher() {
     const segments = pathname.split('/').filter(Boolean);
 
     // Check if first segment is a locale
-    const firstSegmentIsLocale = LOCALES.includes(segments[0] as any);
+    const firstSegmentIsLocale = LOCALES.includes(segments[0] as typeof LOCALES[number]);
 
     // Remove current locale prefix if present
     if (firstSegmentIsLocale) {
@@ -37,7 +37,7 @@ export function LocaleSwitcher() {
 
   const handleLocaleChange = (newLocale: string) => {
     // Set cookie when user explicitly selects a locale
-    setLocaleCookie(newLocale as any);
+    setLocaleCookie(newLocale as typeof LOCALES[number]);
 
     // Navigate to the new locale
     router.push(getLocalizedPath(newLocale));

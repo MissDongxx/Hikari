@@ -3,6 +3,7 @@ import { getBlogSource } from '@/lib/content-source';
 import { getPostData } from '@/lib/mdx-parser';
 import { HeroGradient } from '@/components/hero-gradient';
 import { formatDate } from '@/lib/utils';
+import { getTranslations } from 'next-intl/server';
 
 export default async function Page({
   params
@@ -12,6 +13,7 @@ export default async function Page({
   const { locale } = await params;
   const blog = getBlogSource(locale);
   const posts = blog.getPages();
+  const t = await getTranslations({ locale, namespace: 'blog' });
 
   // Enrich posts with metadata
   const enrichedPosts = posts.map((post: any) => {
@@ -31,10 +33,10 @@ export default async function Page({
       {/* Hero Section with Gradient Background */}
       <HeroGradient>
         <h1 className="mb-2 text-3xl font-bold text-white">
-          Saas-Starter Blog
+          {t('title')}
         </h1>
         <p className="text-lg text-white/80">
-          Design language and ease of use
+          {t('description')}
         </p>
       </HeroGradient>
 

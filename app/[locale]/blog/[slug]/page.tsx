@@ -8,6 +8,7 @@ import { Control } from './page.client';
 import { getPostData } from '@/lib/mdx-parser';
 import { HeroGradient } from '@/components/hero-gradient';
 import { formatDate } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface Param {
   locale: string;
@@ -59,16 +60,8 @@ export default async function Page({
       </HeroGradient>
       <article className="container px-4 py-8">
         <div className="prose max-w-none dark:prose-invert">
-          {/* Render MDX content */}
-          <div dangerouslySetInnerHTML={{ __html: mdxContent
-            // Convert markdown to HTML (basic conversion)
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-            .replace(/\n/gim, '<br />')
-          }} />
+          {/* Render MDX content with react-markdown */}
+          <ReactMarkdown>{mdxContent}</ReactMarkdown>
         </div>
       </article>
     </>
@@ -87,7 +80,7 @@ export async function generateMetadata({ params }: { params: Promise<Param> }): 
 
   return createMetadata({
     title: metadata.title || page.data.title || 'Blog Post',
-    description: metadata.description || (page.data as any).description || 'Blog post'
+    description: metadata.description || (page.data as { description?: string }).description || 'Blog post'
   });
 }
 

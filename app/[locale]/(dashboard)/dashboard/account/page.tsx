@@ -18,7 +18,7 @@ import {
   getUserDetails,
   getSubscription
 } from '@/utils/supabase/queries';
-import { formatDate } from '@/lib/utils';
+import { formatDateUTC } from '@/lib/utils';
 import { updateName, updateEmail } from '@/utils/auth-helpers/server';
 import { ImageUpload } from './image-upload'; 
 import { redirect } from 'next/navigation';
@@ -97,7 +97,7 @@ export default async function AccountPage() {
                 <Label htmlFor="renewal">Next Renewal</Label>
                 <div className="text-muted-foreground">
                   {subscription?.current_period_end
-                    ? formatDate(subscription.current_period_end)
+                    ? formatDateUTC(subscription.current_period_end)
                     : 'N/A'}
                 </div>
               </div>

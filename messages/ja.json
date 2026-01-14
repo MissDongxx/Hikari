@@ -25,5 +25,9 @@
     "getStarted": "始める",
     "github": "GitHub",
     "joinDevelopers": "160人以上の開発者に参加"
+  },
+  "blog": {
+    "title": "Hikari ブログ",
+    "description": "デザイン言語と使いやすさ"
   }
 }

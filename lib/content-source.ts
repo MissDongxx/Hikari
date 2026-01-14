@@ -4,6 +4,8 @@ import { createElement } from 'react';
 import type { InferMetaType, InferPageType } from 'fumadocs-core/source';
 import fs from 'fs';
 import path from 'path';
+import { resolveMdxFile } from './mdx-parser';
+import { promises as fsPromises } from 'fs';
 
 /**
  * Helper function to scan content directory and build map for specific locale
@@ -26,29 +28,14 @@ function buildLocaleMap(contentDir: string, locale: string): Array<{ type: 'page
       const relPath = relativePath ? path.join(relativePath, entry.name) : entry.name;
 
       if (entry.isDirectory()) {
-        // Check if this is a post/doc directory with locale files
-        const localeFile = path.join(fullPath, `${locale}.mdx`);
-        const enFile = path.join(fullPath, `en.mdx`);
-        const indexFile = path.join(fullPath, `index.mdx`);
+        // Use unified MDX file resolution logic
+        const mdxFile = resolveMdxFile(fullPath, locale);
 
-        // Priority: locale file > en.mdx > index.mdx
-        if (fs.existsSync(localeFile)) {
+        if (mdxFile) {
           files.push({
             type: 'page',
             path: path.join(relPath).replace(/\\/g, '/'),
-            data: async () => fs.readFileSync(localeFile, 'utf-8')
-          });
-        } else if (fs.existsSync(enFile)) {
-          files.push({
-            type: 'page',
-            path: path.join(relPath).replace(/\\/g, '/'),
-            data: async () => fs.readFileSync(enFile, 'utf-8')
-          });
-        } else if (fs.existsSync(indexFile)) {
-          files.push({
-            type: 'page',
-            path: path.join(relPath).replace(/\\/g, '/'),
-            data: async () => fs.readFileSync(indexFile, 'utf-8')
+            data: async () => await fsPromises.readFile(mdxFile, 'utf-8')
           });
         }
 
@@ -59,7 +46,7 @@ function buildLocaleMap(contentDir: string, locale: string): Array<{ type: 'page
         files.push({
           type: 'page',
           path: relPath.replace(/\\/g, '/').replace(/\.mdx$/, ''),
-          data: async () => fs.readFileSync(fullPath, 'utf-8')
+          data: async () => await fsPromises.readFile(fullPath, 'utf-8')
         });
       }
     }
@@ -77,9 +64,8 @@ export function createDocsLoader(locale: string) {
 
   return loader({
     baseUrl: '/docs',
-    source: {
-      files: localeFiles as any
-    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source: { files: localeFiles as any },
     icon(icon: string | undefined) {
       if (!icon) return;
       if (icon in icons) {
@@ -106,9 +92,8 @@ export function createBlogLoader(locale: string) {
 
   return loader({
     baseUrl: '/blog',
-    source: {
-      files: localeFiles as any
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source: { files: localeFiles as any }
   });
 }
 

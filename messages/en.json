@@ -25,5 +25,9 @@
     "getStarted": "Get Started",
     "github": "GitHub",
     "joinDevelopers": "Join 160+ developers"
+  },
+  "blog": {
+    "title": "Hikari Blog",
+    "description": "Design language and ease of use"
   }
 }

@@ -40,6 +40,7 @@ export function parseFrontmatter(content: string) {
 
 /**
  * Get MDX file path with fallback
+ * Priority: {locale}.mdx > en.mdx > index.mdx
  */
 export function getMdxPath(baseDir: string, slug: string, locale: string): string {
   const mdxPath = path.join(process.cwd(), baseDir, slug, `${locale}.mdx`);
@@ -55,6 +56,27 @@ export function getMdxPath(baseDir: string, slug: string, locale: string): strin
   }
 
   return '';
+}
+
+/**
+ * Resolve MDX file path within a directory with fallback
+ * Priority: {locale}.mdx > en.mdx > index.mdx
+ * Returns the resolved file path or null if none found
+ */
+export function resolveMdxFile(dirPath: string, locale: string): string | null {
+  const localeFile = path.join(dirPath, `${locale}.mdx`);
+  const enFile = path.join(dirPath, `en.mdx`);
+  const indexFile = path.join(dirPath, `index.mdx`);
+
+  if (fs.existsSync(localeFile)) {
+    return localeFile;
+  } else if (fs.existsSync(enFile)) {
+    return enFile;
+  } else if (fs.existsSync(indexFile)) {
+    return indexFile;
+  }
+
+  return null;
 }
 
 /**

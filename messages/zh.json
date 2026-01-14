@@ -25,5 +25,9 @@
     "getStarted": "立即开始",
     "github": "GitHub",
     "joinDevelopers": "加入 160+ 开发者"
+  },
+  "blog": {
+    "title": "Hikari 博客",
+    "description": "设计语言与易用性"
   }
 }

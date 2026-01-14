@@ -5,12 +5,30 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Format date in user's local timezone
+ * Use this for user-facing dates like blog posts
+ */
 export function formatDate(input: string | number): string {
   const date = new Date(input);
   return date.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
     year: 'numeric'
+  });
+}
+
+/**
+ * Format date in UTC timezone
+ * Use this for system dates like subscription renewal dates
+ */
+export function formatDateUTC(input: string | number): string {
+  const date = new Date(input);
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC'
   });
 }
 
