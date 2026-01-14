@@ -10,7 +10,7 @@ export default function FooterBlog() {
         <div className="flex flex-col items-center md:flex-row justify-between">
           <div className="flex items-center space-x-2">
             <Icons.Eclipse className="h-6 w-6" />
-            <span className="text-xl font-bold">Hikari.</span>
+            <span className="text-xl font-bold">Saas-Starter.</span>
           </div>
           <div className="flex flex-col items-center md:items-end space-y-2 md:space-y-0">
             <div className="flex items-center space-x-4">
@@ -26,7 +26,7 @@ export default function FooterBlog() {
                 </a>
               </p>
               <a
-                href="https://github.com/antoineross/hikari"
+                href="https://github.com/antoineross/saas-starter"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary"

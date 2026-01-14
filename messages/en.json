@@ -15,7 +15,7 @@
     "logout": "Logout"
   },
   "seo": {
-    "title": "Hikari - Modern Web Application",
+    "title": "Saas-Starter - Modern Web Application",
     "description": "A powerful Next.js application with React, Tailwind CSS, and modern web technologies. Build fast, responsive, and beautiful interfaces."
   },
   "hero": {

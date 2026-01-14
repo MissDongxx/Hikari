@@ -15,7 +15,7 @@
     "logout": "ログアウト"
   },
   "seo": {
-    "title": "Hikari - モダンWebアプリケーション",
+    "title": "Saas-Starter - モダンWebアプリケーション",
     "description": "React、Tailwind CSS、最新のWeb技術を使用した強力なNext.jsアプリケーション。高速でレスポンシブな美しいインターフェースを構築。"
   },
   "hero": {

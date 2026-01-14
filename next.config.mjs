@@ -32,3 +32,7 @@ const config = {
 };
 
 export default withNextIntl(withMDX(config));
+
+// Initialize OpenNext for local development
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+initOpenNextCloudflareForDev();

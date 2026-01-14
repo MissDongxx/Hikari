@@ -6,43 +6,6 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Parse frontmatter from MDX content
- */
-function parseFrontmatter(content: string): { data: Record<string, any>; content: string } {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-  const match = content.match(frontmatterRegex);
-
-  if (!match) {
-    return { data: {}, content: content.trim() };
-  }
-
-  const frontmatterStr = match[1];
-  const bodyContent = match[2];
-
-  // Parse YAML-style frontmatter
-  const data: Record<string, any> = {};
-  const lines = frontmatterStr.split('\n');
-
-  for (const line of lines) {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex > 0) {
-      const key = line.slice(0, colonIndex).trim();
-      let value = line.slice(colonIndex + 1).trim();
-
-      // Remove quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-
-      data[key] = value;
-    }
-  }
-
-  return { data, content: bodyContent.trim() };
-}
-
-/**
  * Helper function to scan content directory and build map for specific locale
  * Supports structure: content/{type}/{post-name}/{locale}.mdx
  */

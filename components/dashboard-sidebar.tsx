@@ -32,7 +32,7 @@ const Sidebar = ({ navConfig }: { navConfig: NavItem[] }) => {
           prefetch={false}
         >
           <Eclipse className="h-5 w-5 transition-all group-hover:scale-110" />
-          <span className="sr-only">Hikari Inc</span>
+          <span className="sr-only">Saas-Starter Inc</span>
         </Link>
         {navConfig.map((item, index) => {
           const IconComponent =
@@ -43,13 +43,12 @@ const Sidebar = ({ navConfig }: { navConfig: NavItem[] }) => {
             <Tooltip key={index}>
               <TooltipTrigger asChild>
                 <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors md:h-8 md:w-8 ${
-                    isDisabled
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors md:h-8 md:w-8 ${isDisabled
                       ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                       : isActive
                         ? 'bg-accent text-accent-foreground'
                         : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                    }`}
                 >
                   {isDisabled ? (
                     <IconComponent className="h-5 w-5 opacity-50" />

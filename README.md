@@ -24,21 +24,21 @@ The all-in-one starter kit for building high-performance SaaS applications using
 
 ## 🎬 Demo
 
-[Live Demo](https://hikari.antoineross.com/)
+[Live Demo](https://saas-starter.antoineross.com/)
 
-**Hero Section:** ![Screenshot of demo](./public/hikari-landingpage.png)
+**Hero Section:** ![Screenshot of demo](./public/saas-starter-landingpage.png)
 
-**Dashboard View:** ![Screenshot of dashboard](./public/hikari-dashboard.png)
+**Dashboard View:** ![Screenshot of dashboard](./public/saas-starter-dashboard.png)
 
-**Pricing Table:** ![Screenshot of pricing](./public/hikari-pricing.png)
+**Pricing Table:** ![Screenshot of pricing](./public/saas-starter-pricing.png)
 
-**Documentation:** ![Screenshot of documentation](./public/hikari-documentation.png)
+**Documentation:** ![Screenshot of documentation](./public/saas-starter-documentation.png)
 
-**Blog:** ![Screenshot of blog](./public/hikari-blog.png)
+**Blog:** ![Screenshot of blog](./public/saas-starter-blog.png)
 
 ## 📄 Quick Start Guide
 
-Get up and running quickly by following the [Quick Start Guide](https://hikari.antoineross.com/docs/quick-start).
+Get up and running quickly by following the [Quick Start Guide](https://saas-starter.antoineross.com/docs/quick-start).
 
 ## 🚀 Going Live
 

@@ -15,7 +15,7 @@
     "logout": "退出"
   },
   "seo": {
-    "title": "Hikari - 现代化Web应用",
+    "title": "Saas-Starter - 现代化Web应用",
     "description": "一个强大的Next.js应用，集成React、Tailwind CSS和现代Web技术。构建快速、响应式和美观的界面。"
   },
   "hero": {

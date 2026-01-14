@@ -40,3 +40,6 @@ yarn-error.log*
 # certificates
 certificates
 .env*.local
+
+# OpenNext build output
+.open-next

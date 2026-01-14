@@ -11,8 +11,8 @@ import { CoolMode } from "@/components/magicui/cool-mode";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const AnimatedUnderline = ({ children, href, className }: { children: React.ReactNode; href: string; className?: string }) => (
-  <a 
-    href={href} 
+  <a
+    href={href}
     className={`${className} relative overflow-hidden group`}
   >
     {children}
@@ -30,7 +30,7 @@ export default function FooterPrimary() {
       const { error } = await supabase
         .from('user_email_list')
         .insert([{ email }])
-      
+
       if (error) throw error
 
       toast({
@@ -56,8 +56,8 @@ export default function FooterPrimary() {
             <h3 className="text-lg font-bold mb-4">Work</h3>
             <ul className="space-y-2">
               <li>
-                <AnimatedUnderline href="https://github.com/antoineross/hikari" className="text-primary">
-                  Hikari
+                <AnimatedUnderline href="https://github.com/antoineross/saas-starter" className="text-primary">
+                  Saas-Starter
                 </AnimatedUnderline>
               </li>
               <li>
@@ -116,7 +116,7 @@ export default function FooterPrimary() {
                 </AnimatedUnderline>
               </li>
               <li>
-                <AnimatedUnderline href="https://github.com/antoineross/hikari" className="text-primary">
+                <AnimatedUnderline href="https://github.com/antoineross/saas-starter" className="text-primary">
                   GitHub
                 </AnimatedUnderline>
               </li>
@@ -127,40 +127,40 @@ export default function FooterPrimary() {
               Sign up for our newsletter
             </h3>
             <p className="text-primary mb-4">
-              Hikari is a growing project. Subscribe to get the latest design news, articles, resources, updates and
+              Saas-Starter is a growing project. Subscribe to get the latest design news, articles, resources, updates and
               inspiration.
             </p>
             <form onSubmit={handleSubmit} className="flex">
               <div className="flex items-center w-full border border-gray-300 rounded-md focus-within:outline-none">
 
-                <Input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="w-full text-sm relative z-20 border-none" 
-                  required 
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full text-sm relative z-20 border-none"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <CoolMode>
-                <Button type="submit" className="my-1 bg-black text-white rounded-md mr-1 ">
+                  <Button type="submit" className="my-1 bg-black text-white rounded-md mr-1 ">
                     <ArrowRightIcon className="h-5 w-5" />
-                </Button>
-                {/* <Button type="submit" className="w-full text-lg relative z-20 bg-gradient-to-b from-black to-gray-300/80 hover:from-gray-800 hover:to-gray-400/80 dark:from-white dark:to-slate-900/10 dark:hover:from-slate-200 dark:hover:to-slate-800/10">
+                  </Button>
+                  {/* <Button type="submit" className="w-full text-lg relative z-20 bg-gradient-to-b from-black to-gray-300/80 hover:from-gray-800 hover:to-gray-400/80 dark:from-white dark:to-slate-900/10 dark:hover:from-slate-200 dark:hover:to-slate-800/10">
                   <span className="bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-white dark:from-white dark:to-slate-900/10">
                     Subscribe
                   </span>
                 </Button> */}
                 </CoolMode>
               </div>
-          </form>
+            </form>
           </div>
         </div>
         <div className="border-t mt-10 pt-6 flex flex-col items-center md:flex-row justify-between">
           <div className="flex items-center space-x-2">
             <LogInIcon className="h-6 w-6" />
-            <span className="text-xl font-bold">Hikari.</span>
+            <span className="text-xl font-bold">Saas-Starter.</span>
           </div>
-          <p className="text-gray-500 mt-4 md:mt-0">© Hikari Inc. 2024</p>
+          <p className="text-gray-500 mt-4 md:mt-0">© Saas-Starter Inc. 2024</p>
         </div>
       </div>
     </footer>
