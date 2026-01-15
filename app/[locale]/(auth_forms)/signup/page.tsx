@@ -6,13 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { signUp } from '@/utils/auth-helpers/server';
-import { handleRequest, signInWithOAuth } from '@/utils/auth-helpers/client';
+import { signUp, signInWithGoogle } from '@/utils/auth-helpers/server';
+import { handleRequest } from '@/utils/auth-helpers/client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Chrome, AlertCircle } from 'lucide-react';
 
-export default function SignUp() {
+function SignUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,9 +27,9 @@ export default function SignUp() {
     setIsSubmitting(false);
   };
 
-  const handleOAuthSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleGoogleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
-    await signInWithOAuth(e);
+    await handleRequest(e, signInWithGoogle, null);
     setIsSubmitting(false);
   };
 
@@ -117,8 +117,7 @@ export default function SignUp() {
             </div>
             <Separator className="my-6" />
             <div className="grid gap-2">
-              <form onSubmit={(e) => handleOAuthSubmit(e)}>
-                <input type="hidden" name="provider" value="google" />
+              <form onSubmit={handleGoogleSignin}>
                 <Button
                   variant="outline"
                   type="submit"
@@ -134,6 +133,14 @@ export default function SignUp() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SignUp() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <SignUpContent />
+    </Suspense>
   );
 }
 
