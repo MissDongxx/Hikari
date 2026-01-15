@@ -6,7 +6,7 @@
     "start": "next start",
     "lint": "next lint",
     "prettier-fix": "prettier --write .",
-    "pages:build": "opennextjs-cloudflare build && cp .open-next/worker.js .open-next/assets/_worker.js",
+    "pages:build": "opennextjs-cloudflare build",
     "pages:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "pages:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "pages:upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
