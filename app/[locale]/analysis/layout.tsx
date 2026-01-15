@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function AnalysisLayout({
     children,
 }: {
-    children: React.Node;
+    children: React.ReactNode;
 }) {
     return children;
 }
