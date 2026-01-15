@@ -169,6 +169,35 @@ export async function signInWithPassword(formData: FormData) {
   return redirectPath;
 }
 
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const callbackURL = getURL('/auth/callback');
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: callbackURL
+    }
+  });
+
+  if (error) {
+    return getErrorRedirect(
+      '/signin',
+      'Sign in failed.',
+      error.message
+    );
+  }
+
+  if (data.url) {
+    return redirect(data.url);
+  }
+
+  return getErrorRedirect(
+    '/signin',
+    'Hmm... Something went wrong.',
+    'You could not be signed in.'
+  );
+}
+
 export async function signUp(formData: FormData) {
   const callbackURL = getURL('/auth/callback');
 
