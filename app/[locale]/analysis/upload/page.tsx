@@ -1,22 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Video, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, Video, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { uploadVideo, getCurrentUserId, checkAuth } from '@/lib/supabase-upload';
+import { submitAnalysis } from '@/lib/ai-api-client';
 
 /**
- * 视频上传页面
- * 对应任务: T3.2, T3.3, T3.4 - 实现视频上传组件和完整流程
+ * 视频上传页面 - 完整集成版
+ * 对应任务: T3.2, T3.3, T3.4 + 前后端集成
  */
 export default function UploadPage() {
     const router = useRouter();
     const [referenceVideo, setReferenceVideo] = useState<File | null>(null);
     const [userVideo, setUserVideo] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState('');
     const [error, setError] = useState<string>('');
+    const [userId, setUserId] = useState<string | null>(null);
+
+    // 检查用户登录状态
+    useEffect(() => {
+        async function checkUser() {
+            const isAuth = await checkAuth();
+            if (!isAuth) {
+                // 未登录，跳转到登录页，并携带返回URL
+                const returnUrl = encodeURIComponent(window.location.pathname);
+                router.push(`/signin?returnUrl=${returnUrl}`);
+                return;
+            }
+            const uid = await getCurrentUserId();
+            setUserId(uid);
+        }
+        checkUser();
+    }, [router]);
 
     const handleFileSelect = (type: 'reference' | 'user', file: File | null) => {
         if (!file) return;
@@ -47,25 +67,71 @@ export default function UploadPage() {
             return;
         }
 
+        if (!userId) {
+            setError('用户未登录，请先登录');
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            router.push(`/signin?returnUrl=${returnUrl}`);
+            return;
+        }
+
         setUploading(true);
         setError('');
+        setUploadProgress('准备上传...');
 
         try {
-            // TODO: 实现上传逻辑
-            // 1. 上传视频到 Supabase Storage
-            // 2. 调用后端 API 创建分析任务
-            // 3. 跳转到处理页面
+            // 1. 上传参考视频
+            setUploadProgress('上传参考视频中...');
+            const refUploadResult = await uploadVideo(referenceVideo, userId, 'reference');
 
-            // 临时: 直接跳转到处理中页面
-            const mockTaskId = 'test-task-id';
-            router.push(`/analysis/processing/${mockTaskId}`);
-        } catch (err) {
-            setError('上传失败，请重试');
-            console.error(err);
+            if (!refUploadResult) {
+                throw new Error('参考视频上传失败');
+            }
+
+            // 2. 上传用户视频
+            setUploadProgress('上传您的视频中...');
+            const userUploadResult = await uploadVideo(userVideo, userId, 'user');
+
+            if (!userUploadResult) {
+                throw new Error('用户视频上传失败');
+            }
+
+            // 3. 提交分析任务到 AI 后端
+            setUploadProgress('创建分析任务...');
+            const analysisResult = await submitAnalysis({
+                user_id: userId,
+                reference_video_id: refUploadResult.videoId,
+                user_video_id: userUploadResult.videoId,
+                exercise_type_id: 1 // 深蹲
+            });
+
+            if (!analysisResult) {
+                throw new Error('创建分析任务失败');
+            }
+
+            // 4. 跳转到处理页面
+            setUploadProgress('任务已创建，正在跳转...');
+            setTimeout(() => {
+                router.push(`/analysis/processing/${analysisResult.task_id}`);
+            }, 500);
+
+        } catch (err: any) {
+            setError(err.message || '上传失败，请重试');
+            console.error('Upload error:', err);
         } finally {
             setUploading(false);
         }
     };
+
+    if (userId === null) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                    <p className="mt-4 text-muted-foreground">检查登录状态...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container max-w-6xl py-10">
@@ -80,6 +146,13 @@ export default function UploadPage() {
                 <Alert variant="destructive" className="mb-6">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            {uploadProgress && uploading && (
+                <Alert className="mb-6">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <AlertDescription>{uploadProgress}</AlertDescription>
                 </Alert>
             )}
 
@@ -103,6 +176,7 @@ export default function UploadPage() {
                                 onChange={(e) => handleFileSelect('reference', e.target.files?.[0] || null)}
                                 className="hidden"
                                 id="reference-upload"
+                                disabled={uploading}
                             />
                             <label htmlFor="reference-upload" className="cursor-pointer">
                                 {referenceVideo ? (
@@ -150,6 +224,7 @@ export default function UploadPage() {
                                 onChange={(e) => handleFileSelect('user', e.target.files?.[0] || null)}
                                 className="hidden"
                                 id="user-upload"
+                                disabled={uploading}
                             />
                             <label htmlFor="user-upload" className="cursor-pointer">
                                 {userVideo ? (
@@ -200,7 +275,14 @@ export default function UploadPage() {
                     disabled={!referenceVideo || !userVideo || uploading}
                     className="min-w-[200px]"
                 >
-                    {uploading ? '上传中...' : '开始分析'}
+                    {uploading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            上传中...
+                        </>
+                    ) : (
+                        '开始分析'
+                    )}
                 </Button>
             </div>
         </div>

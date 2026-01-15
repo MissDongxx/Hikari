@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, CheckCircle2 } from 'lucide-react';
+import { getTaskStatus } from '@/lib/ai-api-client';
 
 /**
- * 分析处理中页面
+ * 分析处理中页面 - 完整集成版
  * 对应任务: T3.5 - 实现分析中页面
  */
 export default function ProcessingPage() {
@@ -16,28 +17,33 @@ export default function ProcessingPage() {
 
     const [status, setStatus] = useState<'pending' | 'processing' | 'completed' | 'failed'>('pending');
     const [progress, setProgress] = useState(0);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         // 轮询任务状态
         const pollInterval = setInterval(async () => {
             try {
-                // TODO: 调用后端 API 查询任务状态
-                // const response = await fetch(`${AI_BACKEND_URL}/api/tasks/${taskId}`);
-                // const data = await response.json();
-                // setStatus(data.status);
+                const taskStatus = await getTaskStatus(taskId);
 
-                // 临时: 模拟进度
-                setProgress(prev => {
-                    if (prev >= 100) {
-                        setStatus('completed');
-                        return 100;
+                if (taskStatus) {
+                    setStatus(taskStatus.status as any);
+
+                    // 根据状态设置进度
+                    if (taskStatus.status === 'pending') {
+                        setProgress(20);
+                    } else if (taskStatus.status === 'processing') {
+                        setProgress(60);
+                    } else if (taskStatus.status === 'completed') {
+                        setProgress(100);
+                    } else if (taskStatus.status === 'failed') {
+                        setProgress(0);
+                        setErrorMessage(taskStatus.error_message || '分析失败');
                     }
-                    return prev + 10;
-                });
+                }
             } catch (error) {
                 console.error('Failed to fetch task status:', error);
             }
-        }, 2000);
+        }, 2000); // 每2秒轮询一次
 
         // 状态为 completed 时跳转到结果页
         if (status === 'completed') {
@@ -45,6 +51,11 @@ export default function ProcessingPage() {
             setTimeout(() => {
                 router.push(`/analysis/results/${taskId}`);
             }, 1000);
+        }
+
+        // 失败时停止轮询
+        if (status === 'failed') {
+            clearInterval(pollInterval);
         }
 
         return () => clearInterval(pollInterval);
@@ -56,6 +67,29 @@ export default function ProcessingPage() {
         { label: '动作对比分析', completed: progress > 60 },
         { label: '生成分析报告', completed: progress > 90 },
     ];
+
+    if (status === 'failed') {
+        return (
+            <div className="container max-w-2xl py-20">
+                <Card>
+                    <CardContent className="pt-10 pb-10">
+                        <div className="text-center space-y-8">
+                            <div className="text-red-500">
+                                <h2 className="text-2xl font-bold mb-2">分析失败</h2>
+                                <p className="text-muted-foreground">{errorMessage}</p>
+                            </div>
+                            <button
+                                onClick={() => router.push('/analysis/upload')}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                            >
+                                返回上传页面
+                            </button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="container max-w-2xl py-20">

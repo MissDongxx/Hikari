@@ -222,6 +222,9 @@ async def get_task_status(task_id: str):
         if not task:
             raise HTTPException(status_code=404, detail="任务不存在")
         
+        if "id" in task:
+            task["task_id"] = task["id"]
+            
         return TaskStatusResponse(**task)
     
     except HTTPException:

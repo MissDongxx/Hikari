@@ -1,10 +1,33 @@
+'use client';
+
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { requestPasswordUpdate } from '@/utils/auth-helpers/server';
+import { handleRequest } from '@/utils/auth-helpers/client';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
-export default function Component() {
+export default function ForgotPassword() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get status and error from URL params
+  const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
+  const status = searchParams.get('status');
+  const statusDescription = searchParams.get('status_description');
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setIsSubmitting(true);
+    await handleRequest(e, requestPasswordUpdate, router);
+    setIsSubmitting(false);
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-8">
@@ -27,18 +50,52 @@ export default function Component() {
                 Enter your email to reset your password
               </p>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full">
-              Reset Password
-            </Button>
+            {/* Success Message Display */}
+            {status && (
+              <div className="flex items-center gap-2 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
+                <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">{status}</p>
+                  {statusDescription && (
+                    <p className="text-green-500">{statusDescription}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Error Message Display */}
+            {error && (
+              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">{error}</p>
+                  {errorDescription && (
+                    <p className="text-red-500">{errorDescription}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            <form
+              noValidate={true}
+              className="grid gap-4"
+              onSubmit={handleSubmit}
+            >
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="name@example.com"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect="off"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" loading={isSubmitting}>
+                Reset Password
+              </Button>
+            </form>
             <div className="text-center text-sm text-muted-foreground">
               <span>Reset your password with your email</span>
             </div>

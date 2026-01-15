@@ -131,6 +131,7 @@ export async function signInWithPassword(formData: FormData) {
   const cookieStore = await cookies();
   const email = String(formData.get('email')).trim();
   const password = String(formData.get('password')).trim();
+  const returnUrl = formData.get('returnUrl') as string | null;
   let redirectPath: string;
 
   const supabase = await createClient();
@@ -139,20 +140,29 @@ export async function signInWithPassword(formData: FormData) {
     password
   });
 
+  // Preserve returnUrl in query params for error cases
+  const returnUrlParam = returnUrl ? `returnUrl=${encodeURIComponent(returnUrl)}` : '';
+
   if (error) {
     redirectPath = getErrorRedirect(
       '/signin',
       'Sign in failed.',
-      error.message
+      error.message,
+      false,
+      returnUrlParam
     );
   } else if (data.user) {
     cookieStore.set('preferredSignInView', 'password_signin', { path: '/' });
-    redirectPath = getStatusRedirect('/', 'Success!', 'You are now signed in.');
+    // Redirect to returnUrl if provided, otherwise go to homepage
+    const destination = returnUrl || '/';
+    redirectPath = getStatusRedirect(destination, 'Success!', 'You are now signed in.');
   } else {
     redirectPath = getErrorRedirect(
       '/signin',
       'Hmm... Something went wrong.',
-      'You could not be signed in.'
+      'You could not be signed in.',
+      false,
+      returnUrlParam
     );
   }
 
@@ -244,9 +254,9 @@ export async function updatePassword(formData: FormData) {
     );
   } else if (data.user) {
     redirectPath = getStatusRedirect(
-      '/',
+      '/signin',
       'Success!',
-      'Your password has been updated.'
+      'Your password has been updated. Please sign in with your new password.'
     );
   } else {
     redirectPath = getErrorRedirect(

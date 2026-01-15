@@ -4,8 +4,8 @@ import { NextRequest } from 'next/server';
 import { getErrorRedirect, getStatusRedirect } from '@/utils/helpers';
 
 export async function GET(request: NextRequest) {
-  // The `/auth/callback` route is required for the server-side auth flow implemented
-  // by the `@supabase/ssr` package. It exchanges an auth code for the user's session.
+  // The `/auth/reset_password` route handles the password reset callback.
+  // It exchanges an auth code for the user's session.
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       return NextResponse.redirect(
         getErrorRedirect(
-          `${requestUrl.origin}/signin/forgot_password`,
+          `${requestUrl.origin}/forgot_password`,
           error.name,
           "Sorry, we weren't able to log you in. Please try again."
         )
@@ -28,9 +28,10 @@ export async function GET(request: NextRequest) {
   // URL to redirect to after sign in process completes
   return NextResponse.redirect(
     getStatusRedirect(
-      `${requestUrl.origin}/signin/update_password`,
-      'You are now signed in.',
+      `${requestUrl.origin}/update_password`,
+      'Reset Password',
       'Please enter a new password for your account.'
     )
   );
 }
+

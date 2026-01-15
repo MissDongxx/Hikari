@@ -11,7 +11,11 @@ AI 动作分析后端 - FastAPI 主应用
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from dotenv import load_dotenv
 from routers import analyze
+
+# 加载环境变量
+load_dotenv()
 
 # 创建 FastAPI 应用
 app = FastAPI(

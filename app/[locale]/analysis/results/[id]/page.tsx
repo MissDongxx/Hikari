@@ -14,9 +14,11 @@ import {
     ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
+import { getAnalysisResult, type AnalysisResultResponse } from '@/lib/ai-api-client';
+import { SkeletonCanvas } from '@/components/analysis/SkeletonCanvas';
 
 /**
- * 分析结果展示页面
+ * 分析结果展示页面 - 完整集成版
  * 对应任务: T3.7 - 实现结果展示页面
  * 
  * 注意: T3.6 骨架可视化组件将单独实现
@@ -43,49 +45,34 @@ export default function ResultsPage() {
 
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [overallScore, setOverallScore] = useState<number>(0);
+    const [skeletonData, setSkeletonData] = useState<{ reference: any[]; user: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string>('');
 
     useEffect(() => {
-        // TODO: 从后端获取分析结果
-        // const fetchResults = async () => {
-        //   const response = await fetch(`${AI_BACKEND_URL}/api/results/${taskId}`);
-        //   const data = await response.json();
-        //   setResult(data.comparison_result);
-        //   setOverallScore(data.overall_score);
-        //   setLoading(false);
-        // };
+        // 从后端获取分析结果
+        const fetchResults = async () => {
+            try {
+                const data: AnalysisResultResponse | null = await getAnalysisResult(taskId);
 
-        // 临时: 模拟数据
-        setTimeout(() => {
-            setResult({
-                depth: {
-                    status: 'warn',
-                    reference_value: 90,
-                    user_value: 110,
-                    message: '下蹲深度略浅',
-                    suggestion: '尝试增加下蹲深度，想象坐在椅子上'
-                },
-                knee_tracking: {
-                    status: 'pass',
-                    message: '膝盖轨迹良好',
-                    suggestion: '保持当前轨迹'
-                },
-                torso_lean: {
-                    status: 'fail',
-                    reference_value: 85,
-                    user_value: 65,
-                    message: '上身前倾过大',
-                    suggestion: '加强核心力量，保持上身直立'
-                },
-                balance: {
-                    status: 'pass',
-                    message: '左右平衡良好',
-                    suggestion: '保持对称性'
+                if (data) {
+                    setResult(data.comparison_result);
+                    setOverallScore(data.overall_score || 0);
+                    if (data.skeleton_data) {
+                        setSkeletonData(data.skeleton_data);
+                    }
+                } else {
+                    setError('无法获取分析结果');
                 }
-            });
-            setOverallScore(68);
-            setLoading(false);
-        }, 500);
+            } catch (err) {
+                console.error('Failed to fetch results:', err);
+                setError('加载结果失败，请重试');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchResults();
     }, [taskId]);
 
     if (loading) {
@@ -179,11 +166,23 @@ export default function ResultsPage() {
                     <CardDescription>左侧为参考动作，右侧为您的动作</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="aspect-video bg-secondary rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground">
-                            骨架可视化组件 (T3.6 待实现)
-                        </p>
-                    </div>
+                    {skeletonData ? (
+                        <SkeletonCanvas
+                            referenceFrames={skeletonData.reference || []}
+                            userFrames={skeletonData.user || []}
+                            fps={30}
+                            highlightJoints={[
+                                result.depth.status !== 'pass' ? 23 : -1,
+                                result.depth.status !== 'pass' ? 24 : -1,
+                                result.knee_tracking.status !== 'pass' ? 25 : -1,
+                                result.knee_tracking.status !== 'pass' ? 26 : -1,
+                            ].filter(i => i >= 0)}
+                        />
+                    ) : (
+                        <div className="aspect-video bg-secondary rounded-lg flex items-center justify-center">
+                            <p className="text-muted-foreground">骨架数据加载中...</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
