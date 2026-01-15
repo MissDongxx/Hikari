@@ -7,16 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
-  signInWithEmail,
-  signInWithPassword
+  signInWithPassword,
+  signInWithGoogle
 } from '@/utils/auth-helpers/server';
-import { signInWithOAuth } from '@/utils/auth-helpers/client';
 import { handleRequest } from '@/utils/auth-helpers/client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { Chrome, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, Suspense } from 'react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
-export default function SignIn() {
+function SigninPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,26 +26,17 @@ export default function SignIn() {
   const status = searchParams.get('status');
   const statusDescription = searchParams.get('status_description');
 
-  // Get returnUrl for redirect after login
-  const returnUrl = searchParams.get('returnUrl');
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCredentialsSignin = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     setIsSubmitting(true);
     await handleRequest(e, signInWithPassword, router);
     setIsSubmitting(false);
   };
 
-  const oAuthProviders = [
-    {
-      name: 'google',
-      displayName: 'Google',
-      icon: <Chrome className="mr-2 h-4 w-4" />
-    }
-  ];
-
-  const handleOAuthSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleGoogleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
-    await signInWithOAuth(e);
+    await handleRequest(e, signInWithGoogle, null);
     setIsSubmitting(false);
   };
 
@@ -67,9 +57,9 @@ export default function SignIn() {
         <Card className="w-full max-w-md">
           <CardContent className="grid gap-4 px-4 pb-4 my-10">
             <div className="space-y-1 text-center">
-              <h2 className="text-2xl font-bold">Sign In</h2>
+              <h2 className="text-2xl font-bold">Sign in</h2>
               <p className="text-muted-foreground my-2">
-                Enter your email below to sign in to your account
+                Enter your email and password to sign in
               </p>
             </div>
             {/* Success Message Display */}
@@ -99,12 +89,8 @@ export default function SignIn() {
             <form
               noValidate={true}
               className="grid gap-4"
-              onSubmit={handleSubmit}
+              onSubmit={handleCredentialsSignin}
             >
-              {/* Hidden field for returnUrl */}
-              {returnUrl && (
-                <input type="hidden" name="returnUrl" value={returnUrl} />
-              )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -119,62 +105,67 @@ export default function SignIn() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  required
-                />
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                </div>
+                <Input id="password" type="password" name="password" required />
               </div>
               <Button type="submit" className="w-full" loading={isSubmitting}>
                 Sign in
               </Button>
             </form>
-            <div className="flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <form onSubmit={handleGoogleSignin}>
+              <Button
+                variant="outline"
+                className="w-full"
+                type="submit"
+                loading={isSubmitting}
+              >
+                <ChromeIcon className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+            </form>
+            <div className="text-center text-sm text-muted-foreground">
+              <span>Don&apos;t have an account? </span>
               <Link
                 href="/signup"
-                className="text-sm font-medium hover:underline underline-offset-4"
+                className="underline underline-offset-4 font-medium hover:text-primary"
                 prefetch={false}
               >
-                Don't have an account? Sign up
+                Sign up
               </Link>
             </div>
-            <div className="flex justify-center">
+            <div className="text-center text-xs text-muted-foreground mt-2">
               <Link
                 href="/forgot_password"
-                className="text-sm font-bold hover:underline underline-offset-4"
+                className="hover:underline underline-offset-4"
                 prefetch={false}
               >
                 Forgot your password?
               </Link>
             </div>
-            <Separator className="my-6" />
-            <div className="grid gap-2">
-              {oAuthProviders.map((provider) => (
-                <form
-                  key={provider.name}
-                  className="pb-2"
-                  onSubmit={(e) => handleOAuthSubmit(e)}
-                >
-                  <input type="hidden" name="provider" value={provider.name} />
-                  <Button
-                    variant="outline"
-                    type="submit"
-                    className="w-full"
-                    loading={isSubmitting}
-                  >
-                    {provider.icon}
-                    Sign in with {provider.displayName}
-                  </Button>
-                </form>
-              ))}
-            </div>
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SigninPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <SigninPageContent />
+    </Suspense>
   );
 }
 
@@ -198,3 +189,25 @@ function ArrowLeftIcon(props: any) {
   );
 }
 
+function ChromeIcon(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="21.17" x2="12" y1="8" y2="8" />
+      <line x1="3.95" x2="8.54" y1="6.06" y2="14" />
+      <line x1="10.88" x2="15.46" y1="21.94" y2="14" />
+    </svg>
+  );
+}
