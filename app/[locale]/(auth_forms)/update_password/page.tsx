@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { updatePassword } from '@/utils/auth-helpers/server';
 import { handleRequest } from '@/utils/auth-helpers/client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
-export default function UpdatePassword() {
+function UpdatePasswordContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,6 +112,14 @@ export default function UpdatePassword() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function UpdatePassword() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <UpdatePasswordContent />
+        </Suspense>
     );
 }
 
