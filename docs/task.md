@@ -444,9 +444,9 @@
 
 ---
 
-## 阶段 3：前端集成（共 7 个任务）
+## 阶段 3：前端集成（共 7 个任务） [x]已完成
 
-### T3.1 - 创建前端路由结构
+### T3.1 - 创建前端路由结构 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 1 小时  
@@ -480,7 +480,7 @@
 
 ---
 
-### T3.2 - 实现视频上传组件
+### T3.2 - 实现视频上传组件 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 6 小时  
@@ -518,7 +518,7 @@
 
 ---
 
-### T3.3 - 实现参考视频选择器
+### T3.3 - 实现参考视频选择器 [x]已完成
 
 **优先级**: P1  
 **估算工时**: 3 小时  
@@ -547,7 +547,7 @@
 
 ---
 
-### T3.4 - 实现上传页面完整流程
+### T3.4 - 实现上传页面完整流程 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 4 小时  
@@ -580,7 +580,7 @@
 
 ---
 
-### T3.5 - 实现分析中页面
+### T3.5 - 实现分析中页面 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 3 小时  
@@ -611,7 +611,7 @@
 
 ---
 
-### T3.6 - 实现骨架可视化组件
+### T3.6 - 实现骨架可视化组件 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 8 小时  
@@ -649,7 +649,7 @@
 
 ---
 
-### T3.7 - 实现结果展示页面
+### T3.7 - 实现结果展示页面 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 6 小时  
@@ -688,9 +688,9 @@
 
 ---
 
-## 阶段 4：部署与测试（共 5 个任务）
+## 阶段 4：部署与测试（共 5 个任务） [/]进行中
 
-### T4.1 - Python 后端 Docker 化
+### T4.1 - Python 后端 Docker 化 [x]已完成
 
 **优先级**: P0  
 **估算工时**: 2 小时  
@@ -716,42 +716,42 @@
 
 ---
 
-### T4.2 - 部署 Python 后端到 Fly.io
+### T4.2 - 部署 Python 后端到 Render
 
 **优先级**: P0  
 **估算工时**: 3 小时  
 **风险等级**: 🟡 中风险
 
 **任务描述**:  
-将 Python 后端部署到 Fly.io 云平台。
+将 Python 后端部署到 Render 云平台。
 
 **输入**:
-- T4.1 创建的 Docker 镜像
-- Fly.io 账户
-- Supabase 连接凭证（环境变量）
+- GitHub 仓库（包含 Dockerfile 和 render.yaml）
+- Render 账户
+- Supabase 连接凭证
 
 **输出**:
-- Fly.io 应用 URL：`https://movechecker-ai.fly.dev`
+- Render 应用 URL：`https://movechecker-ai-backend.onrender.com`
 - 环境变量配置：
   ```
   SUPABASE_URL=...
-  SUPABASE_KEY=...
+  SUPABASE_SERVICE_ROLE_KEY=...
   ```
 
 **验证方式**:
-- [ ] `curl https://movechecker-ai.fly.dev/api/tasks/test` 返回正常响应
-- [ ] 查看 Fly.io 日志无报错
+- [ ] `curl https://movechecker-ai-backend.onrender.com/api/tasks/test` 返回正常响应
+- [ ] 查看 Render 日志无报错
 
 **依赖**:
 - T4.1
 
 **风险点**:
-- ⚠️ Fly.io 免费额度限制（1GB RAM）可能不足
-- **应对**: 监控资源使用，必要时调整实例规格
+- ⚠️ Render 免费版 Cold Start 问题 (约 50s 延迟)
+- **应对**: 前端增加加载提示
 
 ---
 
-### T4.3 - 配置前端环境变量
+### T4.3 - 配置前端环境变量 [/]进行中
 
 **优先级**: P0  
 **估算工时**: 0.5 小时  
@@ -766,7 +766,7 @@
 **输出**:
 - Cloudflare Pages 环境变量：
   ```
-  NEXT_PUBLIC_AI_BACKEND_URL=https://movechecker-ai.fly.dev
+  NEXT_PUBLIC_AI_BACKEND_URL=https://movechecker-ai-backend.onrender.com
   ```
 
 **验证方式**:

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: movechecker-ai-backend
+    env: docker
+    region: singapore # Closest to user
+    plan: free
+    rootDir: ai-backend # Build context
+    envVars:
+      - key: SUPABASE_URL
+        sync: false # User will input this in Dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PORT
+        value: 8000
+    healthCheckPath: /health
