@@ -42,7 +42,7 @@ export async function uploadVideo(
 
         // 创建视频上传记录
         const { data: videoRecord, error: dbError } = await supabase
-            .from('video_uploads')
+            .from('video_uploads' as any)
             .insert({
                 user_id: userId,
                 exercise_type_id: 1, // 深蹲
