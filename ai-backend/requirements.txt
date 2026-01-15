@@ -1,0 +1,28 @@
+# ========================================
+# AI 动作分析后端 - Python 依赖清单
+# ========================================
+# 对应任务: T2.2 - 安装核心依赖
+
+# FastAPI 核心
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.10.0
+pydantic-settings==2.6.1
+
+# AI 模型
+mediapipe==0.10.14
+
+# 视频处理
+opencv-python==4.10.0.84
+numpy==1.26.4
+
+# Supabase 客户端
+supabase==2.9.1
+
+# 工具库
+python-dotenv==1.0.1
+python-multipart==0.0.12  # 文件上传支持
+
+# 异步任务（可选，T2.7 使用）
+# celery==5.4.0
+# redis==5.2.0
